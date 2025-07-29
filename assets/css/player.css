@@ -29,11 +29,23 @@ body {
     max-width: 1200px;
 }
 
-.player-drawing {
+.player_sidebar {
     height: 505px;
     width: 210px;
     border-radius: 7px;
     background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.player-drawing {
+    border-radius: 7px;
+    background: #fff;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 section {
@@ -180,6 +192,121 @@ section {
 /* Chat require */
 .chat-require {
     flex: 1;
-    background: red;
+    background: #fff;
     border-radius: 7px;
 }
+
+/* Player */
+.player {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    justify-content: center;
+}
+
+
+.player_main {
+    display: flex;
+    align-items: center;
+}
+
+.player_avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e02020;
+    border-radius: 50%;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.player_name {
+    font-weight: 700;
+    color: #555;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+}
+
+.player_score {
+    color: #4a98f7;
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.player_score_text{
+    margin-left: 2px;
+}
+
+.greentick {
+    color: green;
+    font-size: 1.2rem;
+    margin-left: auto;
+}
+
+.player_navigate {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}  
+
+.player_buttons {
+    color: #fff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.player_buttons.out:hover {
+    background-color: #ce3131;
+}
+
+.out {
+    background-color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+.player_buttons.share:hover {
+    background-color: #1579f3;
+}
+
+.share {
+    background-color: #4a98f7;
+    border: 1px solid #4a98f7;
+}
+
+/* Chat */
+.chat_body {
+    background-color: #fff;
+    width: 180px;
+    height: 160px;
+    overflow-y: auto;
+}
+
+.chat_content{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap-reverse;
+    align-items: center;
+}
+
+.chat_input {
+    margin-bottom: auto;
+    font-size: 0.9rem;
+    width: 180px;
+    border: 3px solid #a5a1a1;
+    border-radius: 4%;
+    outline: none;
+    height: 30px;
+    margin: 5px 0 10px 0;
+}
+
