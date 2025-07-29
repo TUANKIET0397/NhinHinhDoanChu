@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player model</title>
+    <link rel="stylesheet" href="./assets/css/player.css">
+    <script src="./assets/js/player.js" defer></script>
+</head>
+
+<body>
+    <!-- Giao diện người chơi -->
+
+    <!-- draw -->
+
+    <div class="container">
+        <div class="player-drawing"> Lee Tuan Kiet</div>
+        <section class="drawing-board">
+            <canvas></canvas>
+        </section>
+        <div class="tools">
+            <section class="tools-board ">
+                <div class="row">
+                    <label class="title"><strong>Options</strong></label>
+                    <ul class="options">
+                        <li class="option active tool" id="brush">
+                            <img src="./assets/icons/brush.svg" alt="">
+                            <span>Brush</span>
+                        </li>
+                        <li class="option tool" id="eraser">
+                            <img src="./assets/icons/eraser.svg" alt="">
+                            <span>Eraser</span>
+                        </li>
+                        <li class="option">
+                            <input type="range" id="size-slider" min="1" max="30" value="5">
+                        </li>
+                    </ul>
+                </div>
+                <div class="row colors">
+                    <label class="title"><b>Colors</b></label>
+                    <ul class="options">
+                        <li class="option"></li>
+                        <li class="option selected"></li>
+                        <li class="option"></li>
+                        <li class="option"></li>
+                        <li class="option">
+                            <input type="color" id="color-picker" value="#4A98F7">
+                        </li>
+                    </ul>
+                </div>
+                <div class="row buttons">
+                    <button class="clear-canvas">clear Image</button>
+                    <button class="save-img" style="display: none;">Save As Image</button>
+                </div>
+            </section>
+            <!-- form chat -->
+            <div class="chat-require">hello xin chao</div>
+        </div>
+    </div>
+
+
+    <!-- khung chứa bảng xếp hạng -->
+</body>
+
+</html>
