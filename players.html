@@ -116,9 +116,47 @@
                     <button class="player_buttons share">Share</button>
             </div>
         </div>
-        <section class="drawing-board">
-            <canvas></canvas>
-        </section>
+        <section class="drawing-board" style="background: none !important;">
+                <!-- khung chứa canvas vẽ -->
+
+                <div id="drawing-board__choice" class="drawing-board__choice">
+                    <div class="drawing-board__wrapper" id="drawing-board__first">
+                        <img
+                            src="https://media.giphy.com/media/l0HlA1V6N1FjkK9iM/giphy.gif"
+                            alt="fun gif" class="drawing-board__gif" />
+                        <div class="drawing-board__options">
+                            <button class="drawing-board__button"
+                                onclick="handleChoice('draw')">Vẽ</button>
+                            <button class="drawing-board__button"
+                                onclick="handleChoice('draw')">Không
+                                vẽ</button>
+                        </div>
+                    </div>
+                    <div class="drawing-board__wrapper" id="drawing-board__second" style="display: none;">
+                        <div class="drawing-board__options">
+                            <button class="drawing-board__button"
+                                onclick="startDrawing()">Cà chua</button>
+                            <button class="drawing-board__button"
+                                onclick="startDrawing()">Cà rốt</button>
+                        </div>
+                    </div>
+                    <div class="drawing-board__progress">
+                        <div class="drawing-board__progress-fill"
+                            id="drawing-board__progress-fill"></div>
+                    </div>
+                </div>
+
+                <div id="drawing-board__canvas" class="drawing-board__canvas"
+                    style="display: none;">
+                    <canvas id="drawing-canvas"></canvas>
+                    <div class="drawing-board__progress">
+                        <div class="drawing-board__progress-fill"
+                            id="drawing-board__canvas-fill"></div>
+                    </div>
+                </div>
+
+                <!-- canvas -->
+            </section>
         <div class="tools">
             <section class="tools-board ">
                 <div class="row">
@@ -178,6 +216,50 @@
 
 
     <!-- khung chứa bảng xếp hạng -->
+
+
+    <script>
+    let timer;
+
+    function setProgressBar(duration, barId, callback) {
+      const fill = document.getElementById(barId);
+      fill.style.transition = 'none';
+      fill.style.width = '100%';
+      setTimeout(() => {
+        fill.style.transition = `width ${duration}s linear`;
+        fill.style.width = '0%';
+      }, 50);
+
+      clearTimeout(timer);
+      timer = setTimeout(callback, duration * 1000);
+    }
+
+    function handleChoice(choice) {
+      if (choice === 'draw') {
+        document.getElementById('drawing-board__first').style.display = 'none';
+        document.getElementById('drawing-board__second').style.display = 'flex';
+        setProgressBar(10, 'drawing-board__progress-fill', () => startDrawing());
+      } else {
+        showCanvas();
+      }
+    }
+
+    function startDrawing() {
+      document.getElementById('drawing-board__choice').style.display = 'none';
+      showCanvas();
+    }
+
+    function showCanvas() {
+      document.getElementById('drawing-board__canvas').style.display = 'flex';
+      setProgressBar(45, 'drawing-board__canvas-fill', () => {
+        document.getElementById('drawing-board__canvas').style.display = 'none';
+        document.getElementById('drawing-board__choice').style.display = 'block';
+        document.getElementById('drawing-board__first').style.display = 'flex';
+        document.getElementById('drawing-board__second').style.display = 'none';
+        setProgressBar(10, 'drawing-board__progress-fill', () => startDrawing());
+      });
+    }
+  </script>
 </body>
 
 </html>

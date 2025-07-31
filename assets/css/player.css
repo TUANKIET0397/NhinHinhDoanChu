@@ -177,18 +177,8 @@ section {
     background: #4a98f7;
     border: 1px solid #4a98f7;
 }
-.drawing-board {
-    width: 851;
-    height: 505px;
-    flex: 1;
-    overflow: hidden;
-}
-.drawing-board canvas {
-    width: 100%;
-    height: 100%;
-    cursor: url("/assets/img/pointer.png"), auto;
-}
 
+    
 /* Chat require */
 .chat-require {
     flex: 1;
@@ -310,3 +300,90 @@ section {
     margin: 5px 0 10px 0;
 }
 
+/* Drawing board */
+.drawing-board {
+    flex: 1;
+    display: flex;
+    max-width: 700px;
+}
+
+.drawing-board__wrapper {
+    flex:1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.drawing-board__choice {
+      background: white;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      position: relative;
+    }
+
+.drawing-board__canvas {
+  flex: 1;
+  display: flex;
+  background: white;
+  padding: 20px;
+  flex-direction: column;
+}
+
+.drawing-board__gif {
+  width: 150px;
+  max-height: 200px;
+  object-fit: contain;
+}
+
+
+    .drawing-board__options {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+    }
+
+    .drawing-board__button {
+      padding: 10px 20px;
+      background-color: yellow;
+      border: none;
+      border-radius: 12px;
+      font-weight: bold;
+      color: transparent;
+      background-clip: text;
+      -webkit-background-clip: text;
+      background-image: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .drawing-board__progress {
+      height: 10px;
+      background-color: #ccc;
+      width: 95%;
+      margin: auto;
+      border-radius:20px;
+      overflow: hidden;
+    }
+
+    .drawing-board__progress-fill {
+      height: 100%;
+      background-color: red;
+      width: 100%;
+      transition: width linear;
+    }
+
+
+      canvas {
+        flex: 1;
+        max-width: 700px;
+        max-height: 450px;
+
+}
+
+    
+/* drawing board */
