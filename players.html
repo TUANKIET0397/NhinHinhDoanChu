@@ -121,6 +121,8 @@
 
                 <div id="drawing-board__choice" class="drawing-board__choice">
                     <div class="drawing-board__wrapper" id="drawing-board__first">
+                        <h2 class="drawing-board__title">Bạn có muốn vẽ không?</h2>
+                        <h3 class="drawing-board__username">Kiệt</h3>
                         <img
                             src="https://media.giphy.com/media/l0HlA1V6N1FjkK9iM/giphy.gif"
                             alt="fun gif" class="drawing-board__gif" />
@@ -128,11 +130,16 @@
                             <button class="drawing-board__button"
                                 onclick="handleChoice('draw')">Vẽ</button>
                             <button class="drawing-board__button"
-                                onclick="handleChoice('draw')">Không
+                                onclick="handleChoice('no-draw')">Không
                                 vẽ</button>
                         </div>
                     </div>
                     <div class="drawing-board__wrapper" id="drawing-board__second" style="display: none;">
+                        <h2 class="drawing-board__title">Hãy chọn một loại rau củ để vẽ!</h2>
+                        <h3 class="drawing-board__username">Kiệt</h3>
+                        <img
+                            src="https://media.giphy.com/media/l0HlA1V6N1FjkK9iM/giphy.gif"
+                            alt="fun gif" class="drawing-board__gif" />
                         <div class="drawing-board__options">
                             <button class="drawing-board__button"
                                 onclick="startDrawing()">Cà chua</button>
@@ -140,6 +147,7 @@
                                 onclick="startDrawing()">Cà rốt</button>
                         </div>
                     </div>
+                    
                     <div class="drawing-board__progress">
                         <div class="drawing-board__progress-fill"
                             id="drawing-board__progress-fill"></div>
@@ -259,6 +267,9 @@
         setProgressBar(10, 'drawing-board__progress-fill', () => startDrawing());
       });
     }
+    window.onload = function() {
+  setProgressBar(10, 'drawing-board__progress-fill', () => startDrawing());
+};
   </script>
 </body>
 
