@@ -5,7 +5,6 @@ const canvas = document.querySelector("canvas"),
     colorBtns = document.querySelectorAll(".colors .option"),
     colorPicker = document.querySelector("#color-picker"),
     clearCanvas = document.querySelector(".clear-canvas"),
-    saveImg = document.querySelector(".save-img"),
     ctx = canvas.getContext("2d")
 
 // global variables with default value
@@ -15,7 +14,8 @@ let prevMouseX,
     isDrawing = false,
     selectedTool = "brush",
     brushWidth = 5,
-    selectedColor = "#000"
+    selectedColor = "#000",
+    timer
 
 const setCanvasBackground = () => {
     ctx.fillStyle = "#fff"
@@ -49,12 +49,6 @@ const drawing = (e) => {
         ctx.strokeStyle = selectedTool === "eraser" ? "#fff" : selectedColor
         ctx.lineTo(e.offsetX, e.offsetY) // creating line according to the mouse pointer
         ctx.stroke() // drawing/filling line with color
-    } else if (selectedTool === "rectangle") {
-        drawRect(e)
-    } else if (selectedTool === "circle") {
-        drawCircle(e)
-    } else {
-        drawTriangle(e)
     }
 }
 
@@ -90,13 +84,58 @@ clearCanvas.addEventListener("click", () => {
     setCanvasBackground()
 })
 
-saveImg.addEventListener("click", () => {
-    const link = document.createElement("a") // creating <a> element
-    link.download = `${Date.now()}.jpg` // passing current date as link download value
-    link.href = canvas.toDataURL() // passing canvasData as link href value
-    link.click() // clicking link to download image
-})
+// saveImg.addEventListener("click", () => {
+//     const link = document.createElement("a") // creating <a> element
+//     link.download = `${Date.now()}.jpg` // passing current date as link download value
+//     link.href = canvas.toDataURL() // passing canvasData as link href value
+//     link.click() // clicking link to download image
+// })
 
 canvas.addEventListener("mousedown", startDraw)
 canvas.addEventListener("mousemove", drawing)
 canvas.addEventListener("mouseup", () => (isDrawing = false))
+
+function setProgressBar(duration, barId, callback) {
+    const fill = document.getElementById(barId)
+    fill.style.transition = "none"
+    fill.style.width = "100%"
+    setTimeout(() => {
+        fill.style.transition = `width ${duration}s linear`
+        fill.style.width = "0%"
+    }, 50)
+
+    clearTimeout(timer)
+    timer = setTimeout(callback, duration * 1000)
+}
+
+function handleChoice(choice) {
+    if (choice === "draw") {
+        document.getElementById("drawing-board__first").style.display = "none"
+        document.getElementById("drawing-board__second").style.display = "flex"
+        setProgressBar(10, "drawing-board__progress-fill", () => startDrawing())
+    } else {
+        // Nếu không vẽ, có thể thực hiện hành động khác
+    }
+}
+
+function startDrawing() {
+    document.getElementById("drawing-board__choice").style.display = "none"
+    showCanvas()
+    canvas.width = canvas.offsetWidth
+    canvas.height = canvas.offsetHeight
+    setCanvasBackground()
+}
+
+function showCanvas() {
+    document.getElementById("drawing-board__canvas").style.display = "block"
+    setProgressBar(10, "drawing-board__canvas-fill", () => {
+        document.getElementById("drawing-board__canvas").style.display = "none"
+        document.getElementById("drawing-board__choice").style.display = "block"
+        document.getElementById("drawing-board__first").style.display = "flex"
+        document.getElementById("drawing-board__second").style.display = "none"
+        setProgressBar(10, "drawing-board__progress-fill", () => startDrawing())
+    })
+}
+window.onload = function () {
+    setProgressBar(10, "drawing-board__progress-fill", () => startDrawing())
+}

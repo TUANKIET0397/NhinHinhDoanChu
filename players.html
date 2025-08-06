@@ -125,8 +125,48 @@
                 <button class="player_buttons share">Share</button>
             </div>
         </div>
+
+
+
         <section class="drawing-board">
-            <canvas></canvas>
+            <!-- khung chứa canvas vẽ -->
+
+            <div id="drawing-board__choice" class="drawing-board__choice">
+                <div class="drawing-board__wrapper" id="drawing-board__first">
+                    <h2 class="drawing-board__title">Bạn có muốn vẽ không?</h2>
+                    <h3 class="drawing-board__username">Kiệt</h3>
+                    <img src="https://media.giphy.com/media/l0HlA1V6N1FjkK9iM/giphy.gif" alt="fun gif"
+                        class="drawing-board__gif" />
+                    <div class="drawing-board__options">
+                        <button class="drawing-board__button" onclick="handleChoice('draw')">Vẽ</button>
+                        <button class="drawing-board__button" onclick="handleChoice('no-draw')">Không
+                            vẽ</button>
+                    </div>
+                </div>
+                <div class="drawing-board__wrapper" id="drawing-board__second" style="display: none !important;">
+                    <h2 class="drawing-board__title">Hãy chọn một loại rau củ để vẽ!</h2>
+                    <h3 class="drawing-board__username">Kiệt</h3>
+                    <img src="https://media.giphy.com/media/l0HlA1V6N1FjkK9iM/giphy.gif" alt="fun gif"
+                        class="drawing-board__gif" />
+                    <div class="drawing-board__options">
+                        <button class="drawing-board__button" onclick="startDrawing()">Cà chua</button>
+                        <button class="drawing-board__button" onclick="startDrawing()">Cà rốt</button>
+                    </div>
+                </div>
+
+                <div class="drawing-board__progress">
+                    <div class="drawing-board__progress-fill" id="drawing-board__progress-fill"></div>
+                </div>
+            </div>
+
+            <!-- canvas -->
+
+            <div id="drawing-board__canvas" class="drawing-board__canvas" style="display: none;">
+                <canvas id="drawing-canvas"></canvas>
+                <div class="drawing-board__progress">
+                    <div class="drawing-board__progress-fill" id="drawing-board__canvas-fill"></div>
+                </div>
+            </div>
         </section>
         <div class="tools">
             <section class="tools-board ">
@@ -160,13 +200,16 @@
                 </div>
                 <div class="row buttons">
                     <button class="clear-canvas">clear Image</button>
-                    <button class="save-img" style="display: none;">Save As Image</button>
                 </div>
             </section>
             <!-- form chat -->
             <div class="chat-require">
                 <div class="chat_content">
                     <div class="chat_body">
+                        <p>Hêlo</p>
+                        <p>Hêlo</p>
+                        <p>Hêlo</p>
+                        <p>Hêlo</p>
                         <p>Hêlo</p>
                         <p>Hêlo</p>
                         <p>Hêlo</p>
@@ -187,6 +230,9 @@
 
 
     <!-- khung chứa bảng xếp hạng -->
+
+
+    <script src="./assets/js/logic.js"></script>
 </body>
 
 </html>
