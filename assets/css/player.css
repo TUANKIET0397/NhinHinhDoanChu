@@ -205,7 +205,6 @@ section {
     justify-content: center;
 }
 
-
 .player_main {
     display: flex;
     align-items: center;
@@ -240,7 +239,7 @@ section {
     font-weight: 800;
 }
 
-.player_score_text{
+.player_score_text {
     margin-left: 2px;
 }
 
@@ -255,7 +254,7 @@ section {
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-}  
+}
 
 .player_buttons {
     color: #fff;
@@ -292,7 +291,7 @@ section {
     overflow-y: auto;
 }
 
-.chat_content{
+.chat_content {
     display: flex;
     flex-direction: column;
     flex-wrap: wrap-reverse;
@@ -309,4 +308,3 @@ section {
     height: 30px;
     margin: 5px 0 10px 0;
 }
-
