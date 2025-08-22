@@ -24,7 +24,9 @@
         "handlebars": "^4.7.8",
         "morgan": "^1.10.1",
         "nodemon": "^3.1.10",
-        "sass": "^1.90.0"
+        "sass": "^1.90.0",
+        "socket.io": "^4.8.1",
+        "socket.io-client": "^4.8.1"
     },
     "devDependencies": {
         "express-handlebars": "^8.0.3"

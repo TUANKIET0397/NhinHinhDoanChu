@@ -2,6 +2,8 @@ const path = require("path")
 const express = require("express")
 const morgan = require("morgan")
 const { engine } = require("express-handlebars")
+const http = require("http")
+const { Server } = require("socket.io")
 
 const app = express()
 const port = 1607
@@ -53,9 +55,17 @@ app.set("view engine", ".hbs")
 // set views directory - render xong nhảy vào đây tìm
 app.set("views", path.join(__dirname, "resources", "views"))
 
+//IO - Tạo HTTP server từ Express app
+const server = http.createServer(app)
+const io = new Server(server)
+
+// Import socket handlers
+const initializeSocket = require("./sockets")
+initializeSocket(io)
+
 // nạp route vào app
 route(app)
 
-app.listen(port, () => {
-    console.log(`App listening on port ${port}`)
+server.listen(port, () => {
+    console.log(`Server listening on port ${port}`)
 })
