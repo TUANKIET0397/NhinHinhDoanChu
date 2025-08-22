@@ -6,7 +6,7 @@ const http = require("http")
 const { Server } = require("socket.io")
 
 const app = express()
-const port = 1607
+const port = 3000
 
 const route = require("./routes")
 

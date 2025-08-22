@@ -3,6 +3,6 @@ const gameSocket = require("./gameSocket")
 
 module.exports = (io) => {
     // Khởi tạo game socket
-    // gameSocket(io)
+    gameSocket(io)
     console.log("Socket initialized")
 }

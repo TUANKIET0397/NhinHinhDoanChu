@@ -96,6 +96,23 @@ section .signin .content .form {
   display: flex;
   flex-direction: column;
   gap: 25px;
+  align-items: center;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 120px;
+  width: 250px;
+}
+
+.input-name {
+  font-size: 24px;
+  border: none;
+  border-radius: 4px;
+  background-color: #222;
+  color: #fff;
 }
 
 @media (max-width: 900px) {
@@ -119,7 +136,7 @@ section .signin .content .form {
   padding: 15px 30px;
   font-size: 1.2em;
   border-radius: 5px;
-  cursor: url("/img/pointer.png") 4 4, auto;
+  cursor: url("/assets/img/pointer.png"), auto;
   transition: ease 0.3s;
 }
 

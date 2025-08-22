@@ -21,14 +21,15 @@
     "homepage": "https://github.com/TUANKIET0397/NhinHinhDoanChu#readme",
     "dependencies": {
         "express": "^5.1.0",
-        "handlebars": "^4.7.8",
-        "morgan": "^1.10.1",
-        "nodemon": "^3.1.10",
-        "sass": "^1.90.0",
+        "express-handlebars": "^8.0.3",
+        "mysql2": "^3.14.3",
+        "sequelize": "^6.37.7",
         "socket.io": "^4.8.1",
         "socket.io-client": "^4.8.1"
     },
     "devDependencies": {
-        "express-handlebars": "^8.0.3"
+        "morgan": "^1.10.1",
+        "nodemon": "^3.1.10",
+        "sass": "^1.90.0"
     }
 }
