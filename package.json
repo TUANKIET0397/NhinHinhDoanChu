@@ -1,0 +1,32 @@
+{
+    "name": "nhinhinhdoanchu",
+    "version": "1.0.0",
+    "description": "",
+    "main": "assets/index.js",
+    "scripts": {
+        "start": "nodemon --inspect assets/index.js",
+        "watch": "sass --watch assets/resources/scss/:assets/public/css/",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/TUANKIET0397/NhinHinhDoanChu.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/TUANKIET0397/NhinHinhDoanChu/issues"
+    },
+    "homepage": "https://github.com/TUANKIET0397/NhinHinhDoanChu#readme",
+    "dependencies": {
+        "express": "^5.1.0",
+        "handlebars": "^4.7.8",
+        "morgan": "^1.10.1",
+        "nodemon": "^3.1.10",
+        "sass": "^1.90.0"
+    },
+    "devDependencies": {
+        "express-handlebars": "^8.0.3"
+    }
+}
