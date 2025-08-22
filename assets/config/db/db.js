@@ -1,5 +1,3 @@
-console.log("Oke config db index.js")
-
 const { Sequelize } = require("sequelize")
 
 const sequelize = new Sequelize("DrawGame", "root", "160705", {

@@ -64,7 +64,12 @@ const initializeSocket = require("./sockets")
 initializeSocket(io)
 
 // nạp route vào app
-route(app)
+app.get("/", (req, res) => {
+    res.render("home")
+})
+
+const drawRoute = require("./routes/site")
+app.use("/", drawRoute)
 
 server.listen(port, () => {
     console.log(`Server listening on port ${port}`)

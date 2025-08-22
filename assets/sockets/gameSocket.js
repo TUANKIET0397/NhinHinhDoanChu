@@ -1,30 +1,27 @@
-//Database
-console.log("Oke socket")
 const { sequelize, connect } = require("../config/db/db.js")
 connect() // Gọi hàm kết nối DB
 const PlayerModel = require("../app/models/Player.js")(sequelize)
 
-let drawHistory = []
-let guessHistory = []
-let players = [] // [{id, name, score, isCorrect}]
-let currentDrawerIndex = 0
-let currentWord = ""
-let gameStarted = false
-
-// ==========================
-// Export hàm nhận io từ ngoài vào
-// ==========================
+// Export function để sử dụng ở file khác
 module.exports = (io) => {
+    let drawHistory = []
+    let guessHistory = []
+    let players = [] // [{id, name, score, isCorrect}]
+    let currentDrawerIndex = 0
+    let currentWord = ""
+    let gameStarted = false
+
     io.on("connection", (socket) => {
-        console.log("New user connected:", socket.id)
+        console.log("✅ New user connected:", socket.id)
 
         socket.on("joinGame", async (playerName) => {
             if (!playerName || playerName.trim() === "") {
                 console.log("❌ Invalid player name")
+                socket.emit("error", { message: "Tên người chơi không hợp lệ" })
                 return
             }
 
-            // Kiểm tra player đã tồn tại chưa
+            // Kiểm tra xem player đã tồn tại chưa
             const existingPlayer = players.find((p) => p.id === socket.id)
             if (existingPlayer) {
                 console.log("Player already exists:", socket.id)
@@ -33,7 +30,7 @@ module.exports = (io) => {
 
             let playerScore = 0
 
-            // Kiểm tra player đã từng chơi chưa (dựa trên tên)
+            // Kiểm tra xem player đã từng chơi chưa (dựa trên tên)
             try {
                 const existingDbPlayer = await PlayerModel.findOne({
                     where: { player_name: playerName.trim() },
@@ -45,7 +42,7 @@ module.exports = (io) => {
                         `Returning player ${playerName} with score: ${playerScore}`
                     )
 
-                    // Update socket_id mới
+                    // Cập nhật socket_id mới
                     await PlayerModel.update(
                         { socket_id: socket.id },
                         { where: { player_name: playerName.trim() } }
@@ -64,9 +61,9 @@ module.exports = (io) => {
             }
 
             players.push(newPlayer)
-            updatePlayers(io)
+            updatePlayers()
 
-            // Save vào DB
+            // Lưu vào DB (hoặc update nếu đã có)
             try {
                 const [player, created] = await PlayerModel.findOrCreate({
                     where: { player_name: newPlayer.name },
@@ -78,20 +75,22 @@ module.exports = (io) => {
                 })
 
                 if (!created) {
+                    // Player đã tồn tại, chỉ update socket_id
                     await player.update({ socket_id: newPlayer.id })
                 }
             } catch (err) {
                 console.error("❌ Error saving player to DB:", err.message)
             }
 
-            // Logic start game
+            // Game logic
             if (players.length >= 2 && !gameStarted) {
                 gameStarted = true
-                startTurn(io) // bắt đầu lượt đầu tiên
+                startTurn() // Bắt đầu lượt đầu tiên khi có đủ 2 người
             } else if (players.length >= 2 && gameStarted) {
                 socket.emit("role", "guesser")
                 socket.emit("startGame")
 
+                // Gửi thông tin người vẽ hiện tại cho người mới
                 const currentDrawer = players[currentDrawerIndex]
                 if (currentDrawer) {
                     socket.emit("updateCurrentDrawer", {
@@ -105,29 +104,31 @@ module.exports = (io) => {
             } else {
                 socket.emit("waiting", "Waiting for others...")
             }
+
+            // Gửi dữ liệu cho người mới
+            socket.emit("init", {
+                drawHistory,
+                guessHistory,
+            })
         })
 
-        // Gửi dữ liệu cho người mới
-        socket.emit("init", {
-            drawHistory,
-            guessHistory,
-        })
-
-        // Drawing
+        // Nhận dữ liệu vẽ và phát cho người khác
         socket.on("drawing", (data) => {
             drawHistory.push(data)
             socket.broadcast.emit("drawing", data)
         })
 
-        // Guess
+        // Nhận đoán và gửi lại cho tất cả
         socket.on("guess", async (text) => {
+            // Tìm player để lấy tên
             const player = players.find((p) => p.id === socket.id)
             const playerName = player ? player.name : socket.id.slice(0, 5)
 
             const guess = { username: playerName, guess: text }
             guessHistory.push(guess)
-            io.emit("guess", guess)
+            io.emit("guess", { username: playerName, guess: text })
 
+            //logic check keyword
             if (
                 text.trim().toLowerCase() ===
                     currentWord.trim().toLowerCase() &&
@@ -135,9 +136,11 @@ module.exports = (io) => {
             ) {
                 const winner = players.find((p) => p.id === socket.id)
                 if (winner) {
+                    // Cập nhật điểm trong memory
                     winner.score += 10
                     winner.isCorrect = true
 
+                    // Cập nhật điểm trong database
                     try {
                         await PlayerModel.update(
                             { score: winner.score },
@@ -147,46 +150,66 @@ module.exports = (io) => {
                         console.error("❌ Error updating score in DB:", error)
                     }
 
-                    updatePlayers(io)
+                    updatePlayers()
                 }
 
                 io.emit("stopTimer")
 
+                // Delay chuyển lượt
                 setTimeout(() => {
-                    nextTurn(io)
+                    nextTurn()
                 }, 3000)
             }
         })
 
         socket.on("requestWordOptions", async () => {
-            const [rows] = await sequelize.query(
-                "SELECT keyword FROM Keywords ORDER BY RAND() LIMIT 2"
-            )
-            const wordOptions = rows.map((r) => r.keyword)
-            socket.emit("chooseWordOptions", wordOptions)
+            try {
+                const [rows] = await sequelize.query(
+                    "SELECT keyword FROM Keywords ORDER BY RAND() LIMIT 2"
+                )
+
+                const wordOptions = rows.map((r) => r.keyword)
+                socket.emit("chooseWordOptions", wordOptions)
+            } catch (error) {
+                console.error("❌ Error getting word options:", error)
+                socket.emit("error", { message: "Lỗi khi lấy từ khóa" })
+            }
         })
 
         socket.on("skipDrawing", () => {
-            io.emit("stopTimer")
-            nextTurn(io)
+            const player = players.find((p) => p.id === socket.id)
+            if (player && player.role === "drawer") {
+                io.emit("stopTimer")
+                nextTurn()
+            }
         })
 
         socket.on("selectedWord", (word) => {
-            currentWord = word
-            const drawer = players[currentDrawerIndex]
+            const player = players.find((p) => p.id === socket.id)
+            if (player && player.role === "drawer") {
+                currentWord = word
+                const drawer = players[currentDrawerIndex]
 
-            io.emit("startRound")
-            io.to(drawer.id).emit("startDrawing")
-            socket.broadcast.emit("otherPlayerDrawing")
+                // Phát cho tất cả người chơi sự kiện bắt đầu round
+                io.emit("startRound")
+
+                io.to(drawer.id).emit("startDrawing")
+                socket.broadcast.emit("otherPlayerDrawing")
+            }
         })
 
         socket.on("timeUp", () => {
-            nextTurn(io)
+            console.log("Server got timeUp from", socket.id)
+            const player = players.find((p) => p.id === socket.id)
+            if (player && player.role === "drawer") {
+                nextTurn()
+            }
         })
 
         socket.on("clearImg", () => {
             const player = players.find((p) => p.id === socket.id)
             if (player && player.role === "drawer") {
+                drawHistory = []
                 io.emit("clear")
             }
         })
@@ -198,13 +221,19 @@ module.exports = (io) => {
             const playerToRemove = players.find((p) => p.id === socket.id)
             if (playerToRemove) {
                 players = players.filter((p) => p.id !== socket.id)
-                updatePlayers(io)
+                updatePlayers()
 
-                await removePlayerFromDB(playerToRemove.id)
+                try {
+                    await removePlayerFromDB(playerToRemove.id)
+                } catch (error) {
+                    console.error("❌ Error removing player from DB:", error)
+                }
 
                 if (players.length < 2) {
                     io.emit("waiting", "Waiting for other players...")
                     currentDrawerIndex = 0
+                    drawHistory = []
+                    guessHistory = []
                     io.emit("clearCanvas")
                     gameStarted = false
                     return
@@ -214,148 +243,177 @@ module.exports = (io) => {
                     if (currentDrawerIndex >= players.length) {
                         currentDrawerIndex = 0
                     }
-                    nextTurn(io)
+                    nextTurn()
                 }
             }
         })
     })
-}
 
-// =====================
-// Các function hỗ trợ
-// =====================
-function updatePlayers(io) {
-    const currentDrawer = players[currentDrawerIndex]
+    //Functions
+    function updatePlayers() {
+        const currentDrawer = players[currentDrawerIndex]
 
-    io.emit(
-        "updatePlayers",
-        players.map((p) => ({
-            id: p.id,
-            name: p.name || p.player_name || p.id.slice(0, 5),
-            score: p.score || 0,
-            role: p.role || "guesser",
-            isCorrect: p.isCorrect || false,
-        }))
-    )
+        // Gửi thông tin danh sách players
+        io.emit(
+            "updatePlayers",
+            players.map((p) => ({
+                id: p.id,
+                name: p.name || p.player_name || p.id.slice(0, 5),
+                score: p.score || 0,
+                role: p.role || "guesser", // 'drawer' hoặc 'guesser'
+                isCorrect: p.isCorrect || false,
+            }))
+        )
 
-    if (currentDrawer && players.length >= 2) {
-        const drawerInfo = {
-            id: currentDrawer.id,
-            name:
-                currentDrawer.name ||
-                currentDrawer.player_name ||
-                currentDrawer.id.slice(0, 5),
+        // Gửi thông tin người vẽ hiện tại riêng biệt
+        if (currentDrawer && players.length >= 2) {
+            const drawerInfo = {
+                id: currentDrawer.id,
+                name:
+                    currentDrawer.name ||
+                    currentDrawer.player_name ||
+                    currentDrawer.id.slice(0, 5),
+            }
+
+            console.log("Sending updateCurrentDrawer:", drawerInfo.name)
+            io.emit("updateCurrentDrawer", drawerInfo)
         }
-        io.emit("updateCurrentDrawer", drawerInfo)
     }
-}
 
-async function chooseWord() {
-    try {
-        const [rows] = await sequelize.query(
-            "SELECT keyword FROM Keywords ORDER BY RAND() LIMIT 1"
-        )
-        return rows[0].keyword
-    } catch (error) {
-        console.error("Error choosing word:", error)
-        return null
-    }
-}
-
-async function startTurn(io) {
-    if (players.length < 2) return
-
-    players.forEach((p) => {
-        p.role = "guesser"
-        p.isCorrect = false
-    })
-
-    players[currentDrawerIndex].role = "drawer"
-    const drawer = players[currentDrawerIndex]
-
-    updatePlayers(io)
-
-    io.emit("newTurnStarted", {
-        currentDrawer: {
-            id: drawer.id,
-            name: drawer.name || drawer.player_name || drawer.id.slice(0, 5),
-        },
-    })
-
-    players.forEach((p, index) => {
-        io.to(p.id).emit(
-            "role",
-            index === currentDrawerIndex ? "drawer" : "guesser"
-        )
-    })
-
-    drawHistory = []
-    guessHistory = []
-    io.emit("clearCanvas")
-}
-
-async function nextTurn(io) {
-    if (players.length < 2) return
-
-    const currentDrawer = players[currentDrawerIndex]
-    const hasCorrectGuess = players.some((p) => p.isCorrect)
-
-    if (hasCorrectGuess && currentDrawer) {
-        currentDrawer.score += 5
+    async function chooseWord() {
         try {
-            await PlayerModel.update(
-                { score: currentDrawer.score },
-                { where: { socket_id: currentDrawer.id } }
+            const [rows] = await sequelize.query(
+                "SELECT keyword FROM Keywords ORDER BY RAND() LIMIT 1"
             )
+
+            return rows[0]?.keyword || "default"
         } catch (error) {
-            console.error("❌ Error updating drawer score in DB:", error)
+            console.error("Error choosing word:", error)
+            return "default"
         }
     }
 
-    currentDrawerIndex = (currentDrawerIndex + 1) % players.length
-    currentWord = await chooseWord()
+    async function startTurn() {
+        if (players.length < 2) return
 
-    players.forEach((p) => {
-        p.role = "guesser"
-        p.isCorrect = false
-    })
+        // Reset tất cả về guesser
+        players.forEach((p) => {
+            p.role = "guesser"
+            p.isCorrect = false
+        })
 
-    players[currentDrawerIndex].role = "drawer"
-    const newDrawer = players[currentDrawerIndex]
+        // Chỉ định drawer
+        players[currentDrawerIndex].role = "drawer"
 
-    updatePlayers(io)
+        const drawer = players[currentDrawerIndex]
 
-    io.emit("newTurnStarted", {
-        currentDrawer: {
-            id: newDrawer.id,
-            name:
-                newDrawer.name ||
-                newDrawer.player_name ||
-                newDrawer.id.slice(0, 5),
-        },
-    })
+        console.log(`Starting turn - Drawer: ${drawer.name} (${drawer.id})`)
 
-    players.forEach((p, index) => {
-        if (index === currentDrawerIndex) {
-            io.to(p.id).emit("role", "drawer")
-            io.to(p.id).emit("yourTurnToDraw", currentWord)
-        } else {
-            io.to(p.id).emit("role", "guesser")
+        updatePlayers()
+
+        io.emit("newTurnStarted", {
+            currentDrawer: {
+                id: drawer.id,
+                name:
+                    drawer.name || drawer.player_name || drawer.id.slice(0, 5),
+            },
+        })
+
+        // Gửi role cho từng người chơi
+        players.forEach((p, index) => {
+            if (index === currentDrawerIndex) {
+                io.to(p.id).emit("role", "drawer")
+            } else {
+                io.to(p.id).emit("role", "guesser")
+            }
+        })
+
+        drawHistory = []
+        guessHistory = []
+
+        io.emit("clearCanvas")
+    }
+
+    async function nextTurn() {
+        if (players.length < 2) return
+
+        // Thưởng điểm cho drawer nếu có người đoán đúng
+        const currentDrawer = players[currentDrawerIndex]
+        const hasCorrectGuess = players.some((p) => p.isCorrect)
+
+        if (hasCorrectGuess && currentDrawer) {
+            currentDrawer.score += 5 // Drawer được 5 điểm
+
+            // Cập nhật điểm drawer trong database
+            try {
+                await PlayerModel.update(
+                    { score: currentDrawer.score },
+                    { where: { socket_id: currentDrawer.id } }
+                )
+            } catch (error) {
+                console.error("❌ Error updating drawer score in DB:", error)
+            }
         }
-    })
 
-    drawHistory = []
-    guessHistory = []
+        // Chuyển lượt
+        currentDrawerIndex = (currentDrawerIndex + 1) % players.length
+        currentWord = await chooseWord()
 
-    io.emit("clearCanvas")
-    io.emit("startGame")
-}
+        // Reset tất cả về guesser
+        players.forEach((p) => {
+            p.role = "guesser"
+            p.isCorrect = false
+        })
 
-async function removePlayerFromDB(socketId) {
-    try {
-        await PlayerModel.destroy({ where: { socket_id: socketId } })
-        console.log(`Player with socket_id=${socketId} removed from DB`)
-    } catch (error) {
-        console.error("Error removing player from DB:", error)
+        // Chỉ định drawer mới
+        players[currentDrawerIndex].role = "drawer"
+
+        const newDrawer = players[currentDrawerIndex]
+
+        console.log(
+            `Next turn - New Drawer: ${newDrawer.name} (${newDrawer.id})`
+        )
+
+        // Cập nhật players và gửi thông tin người vẽ mới
+        updatePlayers()
+
+        // Gửi sự kiện turn mới
+        io.emit("newTurnStarted", {
+            currentDrawer: {
+                id: newDrawer.id,
+                name:
+                    newDrawer.name ||
+                    newDrawer.player_name ||
+                    newDrawer.id.slice(0, 5),
+            },
+        })
+
+        // Gửi role cho từng người
+        players.forEach((p, index) => {
+            if (index === currentDrawerIndex) {
+                io.to(p.id).emit("role", "drawer")
+                io.to(p.id).emit("yourTurnToDraw", currentWord)
+            } else {
+                io.to(p.id).emit("role", "guesser")
+            }
+        })
+
+        drawHistory = []
+        guessHistory = []
+
+        io.emit("clearCanvas")
+        io.emit("startGame")
+    }
+
+    // Function delete from database
+    async function removePlayerFromDB(socketId) {
+        try {
+            await PlayerModel.destroy({
+                where: { socket_id: socketId },
+            })
+            console.log(`Player with socket_id=${socketId} removed from DB`)
+        } catch (error) {
+            console.error("Error removing player from DB:", error)
+        }
     }
 }

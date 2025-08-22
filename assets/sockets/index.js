@@ -1,8 +1,7 @@
-// socket.io
-const gameSocket = require("./gameSocket")
-
 module.exports = (io) => {
-    // Khởi tạo game socket
+    // Import gameSocket
+    const gameSocket = require("./gameSocket")
+
+    // Khởi tạo game socket với io
     gameSocket(io)
-    console.log("Socket initialized")
 }

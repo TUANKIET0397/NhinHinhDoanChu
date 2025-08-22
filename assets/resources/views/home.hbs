@@ -267,24 +267,23 @@
     <div class="signin">
         <div class="content">
             <h2>Vẽ Hình Đoán Chữ</h2>
-            <form class="form" method="post" action="/player">
-                <input
-                    name="name"
-                    type="text"
-                    placeholder="Nhập tên của bạn"
-                    required
-                />
-                <button type="submit" id="play-button">Chơi Ngay!</button>
-            </form>
+            <div class="form">
+                <form class="login-form" action="/player" method="GET">
+                    <input
+                        id="playerName"
+                        class="input-name"
+                        type="text"
+                        placeholder="Enter your name here"
+                        autocomplete="off"
+                        required
+                    />
+                    <button id="play-button" type="button">Play Now!</button>
+                </form>
+            </div>
         </div>
     </div>
 </section>
-<script>
-    document.addEventListener('DOMContentLoaded', function () { const btn =
-    document.getElementById('play-button'); btn.addEventListener('click',
-    function () { const name =
-    document.getElementById('playerName').value.trim(); if (!name) {
-    alert('Please enter your name!'); return; } // Lưu tên player vào
-    localStorage localStorage.setItem('playerName', name); window.location.href
-    = '/gamePlay?playerName=' + encodeURIComponent(name); }); });
-</script>
+
+{{#contentFor "scripts"}}
+    <script src="/js/home.js"></script>
+{{/contentFor}}
