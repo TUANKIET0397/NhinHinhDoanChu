@@ -325,6 +325,22 @@ socket.on("updateCurrentDrawer", (drawerInfo) => {
     updateCurrentDrawerName(drawerInfo.name)
 })
 
+socket.on('updateCurrentDrawer', (data) => {
+    // ...existing code...
+    
+    if(socket.id === data.drawer.id) {
+        // Nếu là người vẽ
+        document.getElementById('drawing-board__canvas').style.display = 'flex';
+        document.getElementById('drawing-board__choice').style.display = 'none';
+        
+        // Hiển thị từ đã chọn
+        const wordDisplay = document.createElement('div');
+        wordDisplay.className = 'current-word-display';
+        wordDisplay.textContent = `Từ cần vẽ: ${data.word}`;
+        document.querySelector('.drawing-board').appendChild(wordDisplay);
+    }
+});
+
 // Cập nhật khi game bắt đầu turn mới
 socket.on("newTurnStarted", (gameState) => {
     console.log("New turn started, drawer:", gameState.currentDrawer)
@@ -530,3 +546,53 @@ socket.on("reconnect", (attemptNumber) => {
 window.onload = function () {
     setProgressBar(10, "drawing-board__progress-fill", () => startDrawing())
 }
+
+// Ranking Board
+function updateRankingBoard(rankings) {
+    const items = document.querySelectorAll('.ranking-board__item');
+    
+    rankings.forEach((player, index) => {
+        const item = items[index];
+        if (item) {
+            item.querySelector('.ranking-board__name').textContent = player.name;
+            item.querySelector('.ranking-board__score').textContent = player.score;
+        }
+    });
+
+    // Start progress bar animation
+    const progressFill = document.querySelector('.ranking-board__progress-fill');
+    progressFill.style.width = '100%';
+    setTimeout(() => {
+        progressFill.style.transition = '8s linear';
+        progressFill.style.width = '0';
+    }, 100);
+}
+
+socket.on('showRankings', (data) => {
+    const rankingBoard = document.querySelector('.ranking-board');
+    rankingBoard.style.display = 'flex';
+    updateRankingBoard(data.players);
+    
+    // Hide ranking board after 8 seconds
+    setTimeout(() => {
+        rankingBoard.style.display = 'none';
+    }, 8000);
+});
+
+// Thêm xử lý khi reset game
+socket.on('resetGame', (data) => {
+    // ...existing code...
+    
+    // Xóa hiển thị từ cũ
+    const oldWordDisplay = document.querySelector('.current-word-display');
+    if(oldWordDisplay) {
+        oldWordDisplay.remove();
+    }
+    
+    // Lấy lại tên người chơi từ URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const playerName = urlParams.get('playerName');
+    if(playerName) {
+        document.querySelector('.player-name').textContent = playerName;
+    }
+});

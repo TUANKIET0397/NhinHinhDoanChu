@@ -441,3 +441,104 @@ section {
 }
 
 /*# sourceMappingURL=player.css.map */
+
+.ranking-board {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  padding: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+  width: 80%;
+  max-width: 800px;
+  text-align: center;
+}
+
+.ranking-board__title {
+  font-size: 32px;
+  font-weight: bold;
+  color: #003399;
+  margin: 20px 0;
+}
+
+.ranking-board__list {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 40px;
+  margin-top: 40px;
+}
+
+.ranking-board__item {
+  width: 135px;
+  padding: 2px;
+}
+
+.ranking-board__avatar {
+  width: 100%;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;  
+}
+.ranking-board__avatar img {
+width: 100%;
+height: 100%;
+object-fit: contain;
+display: block;
+}
+
+.ranking-board__name {
+  font-size: 15px;
+  margin-top: 10px;
+}
+
+.ranking-board__score {
+  font-size: 13px;
+  color: #666;
+  margin: 5px auto;
+}
+
+ h1, h2, h3, h4, h5, h6 {
+margin: 0;
+padding: 0;}
+
+/* podium effect */
+.ranking-board__item--first { height: 200px; }
+.ranking-board__item--second { height: 175px; width: 110px; }
+.ranking-board__item--third { height: 160px; width: 100px; }
+
+
+.ranking-board__item--second img{ height: 90px;}
+.ranking-board__item--third img{ height: 90px}
+
+/* Add progress bar styling */
+.ranking-board__progress {
+  height: 10px;
+  background-color: #ccc;
+  width: 95%;
+  margin: 20px auto;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.ranking-board__progress-fill {
+  height: 100%;
+  background-color: #003399;
+  width: 100%;
+  transition: width linear;
+}
+
+.ranking-board__reset-text {
+    color: #666;
+    font-size: 14px;
+    margin-top: 15px;
+    font-style: italic;
+}

@@ -10,6 +10,9 @@ module.exports = (io) => {
     let currentDrawerIndex = 0
     let currentWord = ""
     let gameStarted = false
+    let turnCount = 0 // Track number of turns per player
+    let maxTurns = 4 // Default max turns
+    let roundStartTime = {} // Track answer times
 
     io.on("connection", (socket) => {
         console.log("✅ New user connected:", socket.id)
@@ -120,6 +123,9 @@ module.exports = (io) => {
 
         // Nhận đoán và gửi lại cho tất cả
         socket.on("guess", async (text) => {
+            // Track answer time for rankings
+            roundStartTime[socket.id] = Date.now()
+
             // Tìm player để lấy tên
             const player = players.find((p) => p.id === socket.id)
             const playerName = player ? player.name : socket.id.slice(0, 5)
@@ -280,6 +286,99 @@ module.exports = (io) => {
         }
     }
 
+    function updateMaxTurns() {
+        if (players.length < 4) {
+            maxTurns = 4
+        } else if (players.length < 7) {
+            maxTurns = 3
+        } else if (players.length < 9) {
+            maxTurns = 2
+        } else {
+            maxTurns = 1
+        }
+    }
+
+    async function resetGame() {
+        // Reset điểm và lượt chơi
+        players.forEach((player) => {
+            player.score = 0
+            player.hasDrawn = false
+            player.correctGuess = false
+        })
+
+        // Reset các biến game
+        turnCount = 0
+        currentDrawer = null
+        currentWord = null
+        isPlaying = false
+
+        // Thông báo reset cho clients
+        io.emit("resetGame", {
+            players: Array.from(players.values()),
+        })
+
+        // Bắt đầu game mới sau 3 giây
+        setTimeout(() => {
+            if (players.length >= 3) {
+                updateMaxTurns()
+                startNewRound()
+            }
+        }, 3000)
+    }
+
+    async function showRankings() {
+        if (players.length < 3) return
+
+        // Sắp xếp theo điểm cao đến thấp
+        const rankedPlayers = Array.from(players.values()).sort((a, b) => {
+            if (b.score !== a.score) {
+                return b.score - a.score // Sắp xếp theo điểm
+            }
+            return a.answerTime - b.answerTime // Nếu điểm bằng nhau thì xét thời gian
+        })
+
+        // Lấy top 3 và sắp xếp theo thứ tự hiển thị (2-1-3)
+        const top3 = [
+            rankedPlayers[1], // Vị trí 2
+            rankedPlayers[0], // Vị trí 1
+            rankedPlayers[2], // Vị trí 3
+        ].filter(Boolean)
+
+        io.emit("showRankings", {
+            players: top3,
+            duration: 8,
+        })
+
+        // Reset game sau khi hiện bảng xếp hạng
+        setTimeout(() => {
+        // Reset các biến game
+        turnCount = 0;
+        currentDrawerIndex = 0;
+        players.forEach(p => {
+            p.score = 0;
+            p.role = "guesser";
+            p.isCorrect = false;
+        });
+
+        // Clear history
+        drawHistory = [];
+        guessHistory = [];
+
+        // Thông báo reset
+        io.emit('resetGame', {
+            players: players
+        });
+
+        // Bắt đầu game mới
+        setTimeout(() => {
+            if (players.length >= 3) {
+                updateMaxTurns();
+                startTurn();
+            }
+        }, 3000);
+    }, 8000);
+}
+
     async function chooseWord() {
         try {
             const [rows] = await sequelize.query(
@@ -335,6 +434,13 @@ module.exports = (io) => {
     }
 
     async function nextTurn() {
+        turnCount++
+        if (turnCount >= maxTurns * players.length) {
+            // Show rankings when all turns are done
+            await showRankings()
+            return
+        }
+
         if (players.length < 2) return
 
         // Thưởng điểm cho drawer nếu có người đoán đúng
