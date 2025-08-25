@@ -18,6 +18,7 @@ app.use(express.json()) // xử lý dữ liệu json
 app.use(express.static(path.join(__dirname, "public")))
 
 app.use("/js", express.static(path.join(__dirname, "js")))
+app.use("/img", express.static(path.join(__dirname, "img")))
 // HTTP logger
 app.use(morgan("combined"))
 
