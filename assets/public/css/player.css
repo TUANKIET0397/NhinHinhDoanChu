@@ -16,7 +16,18 @@ body {
   justify-content: center;
   min-height: 100vh;
   background: #6AD1E0;
-  background-image: url('https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/165568/Originals/thanh-guom-diet-quy.jpg');
+  background-image: url("../img/background/background_player.jpg");
+  background-size: cover;
+  background-repeat: no-repeat; 
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  backdrop-filter: blur(2.5px); /* mức độ blur */
+  background-color: rgba(255, 255, 255, 0.1); /* mờ thêm bằng overlay màu */
+  z-index: -1;
 }
 
 /* common */
@@ -395,6 +406,7 @@ section {
   border-radius: 10px;
   height: 100%;
   background: rgb(255, 255, 255);
+  border: 4px solid #5a5a5a;
 }
 
 .drawing-board__choice {
@@ -421,14 +433,14 @@ section {
   width: 350px;
   max-height: 235px;
   object-fit: contain;
-  margin: 0 0 40px 0;
+  margin: 0 0 30px 0;
 }
 
 .drawing-board__title {
   font-size: 65px;
   font-weight: bold;
   margin-bottom: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 13px;
   text-align: center;
   font-family: Protest Riot;
   color: #244E84;
@@ -621,17 +633,22 @@ h6 {
 
 /* Styling cho word display và hint */
 .word-display {
-  background: #f8f9fa;
-  width: 300px;
-  border: 2px solid #4a98f7;
+  position: absolute;
+  top: -40px;
+  left: 48%;
+  transform: translateX(-50%);
+  background: #b5b5b5;
+  width: 200x;
+  border: 2px solid #979696;
   border-radius: 10px;
   padding: 5px;
   margin-bottom: 15px;
   text-align: center;
+  z-index: 100;
 }
 
 .word-display h3 {
-  color: #333;
+  color: #000000;
   margin-bottom: 10px;
   font-size: 18px;
   font-family: Open Sans;
@@ -639,15 +656,16 @@ h6 {
 }
 
 .word-display #current-word {
-  color: #4a98f7;
+  color: #c73c00;
   font-weight: bold;
   font-size: 20px;
   font-family: Open Sans;
   font-weight: bold 800;
+  text-shadow: 1.5px 1.5px 3px rgb(255, 255, 255);
 }
 
 .hint-button {
-  background: #4a98f7;
+  background: #f25900;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -660,7 +678,7 @@ h6 {
 }
 
 .hint-button:hover {
-  background: #357abd;
+  background: #d44b01;
   transform: translateY(-2px);
 }
 

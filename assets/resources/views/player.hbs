@@ -23,7 +23,11 @@
 
     <section class="drawing-board" style="background: none !important;">
         <!-- khung chứa canvas vẽ -->
-
+        <div class="word-display" id="word-display" style="display: none;">
+                <h3>Keyword: <span id="current-word"></span></h3>
+                <button class="hint-button" id="hint-button">Suggest (<span id="hint-count">3</span>)</button>
+        </div>
+        
         <div
             id="drawing-board__choice"
             class="drawing-board__choice"
@@ -78,10 +82,7 @@
             class="drawing-board__canvas"
             style="display: none;"
         >
-            <div class="word-display" id="word-display" style="display: none;">
-                <h3>Keyword: <span id="current-word"></span></h3>
-                <button class="hint-button" id="hint-button">Suggest (<span id="hint-count">3</span>)</button>
-            </div>
+            
 
             <!-- Gợi ý hiển thị cho TẤT CẢ người chơi (kể cả người đoán) -->
             <div id="hint-display" class="hint-display" style="display:none;">

@@ -292,6 +292,19 @@ socket.on('startDrawing', () => {
   document.getElementById('drawing-board__choice').style.display = 'none';
   document.getElementById('drawing-board__canvas').style.display = 'block';
   resizeCanvas();
+  
+  // Khởi tạo lại hint elements
+  hintButton = document.getElementById("hint-button");
+  wordDisplay = document.getElementById("word-display");
+  currentWordSpan = document.getElementById("current-word");
+  hintCountSpan = document.getElementById("hint-count");
+  hintDisplay = document.getElementById("hint-display");
+  hintText = document.getElementById("hint-text");
+  remainingHintsSpan = document.getElementById("remaining-hints");
+  
+  // Thêm event listener cho hint button
+  addHintButtonListener();
+  
   // Nếu client đã biết currentWord, hiển thị ngay cho người vẽ
   if (currentWord && currentWordSpan) currentWordSpan.textContent = currentWord;
   if (currentWord && wordDisplay) wordDisplay.style.display = 'block';
@@ -317,6 +330,15 @@ socket.on('startRound', () => {
 //Role
 socket.on('role', (role) => {
   console.log('Received role:', role);
+
+  // Khởi tạo lại hint elements
+  hintButton = document.getElementById("hint-button");
+  wordDisplay = document.getElementById("word-display");
+  currentWordSpan = document.getElementById("current-word");
+  hintCountSpan = document.getElementById("hint-count");
+  hintDisplay = document.getElementById("hint-display");
+  hintText = document.getElementById("hint-text");
+  remainingHintsSpan = document.getElementById("remaining-hints");
 
   if (role === 'drawer') {
     isDrawer = true;
@@ -381,6 +403,16 @@ socket.on('clearCanvas', () => {
 function chooseWord(word) {
   // Cập nhật ngay trên client cho người vẽ
   currentWord = word;
+  
+  // Khởi tạo lại hint elements
+  hintButton = document.getElementById("hint-button");
+  wordDisplay = document.getElementById("word-display");
+  currentWordSpan = document.getElementById("current-word");
+  hintCountSpan = document.getElementById("hint-count");
+  hintDisplay = document.getElementById("hint-display");
+  hintText = document.getElementById("hint-text");
+  remainingHintsSpan = document.getElementById("remaining-hints");
+  
   if (currentWordSpan) currentWordSpan.textContent = word;
   if (wordDisplay) wordDisplay.style.display = 'block';
 
@@ -546,6 +578,16 @@ socket.on('connect', () => {
   console.log('Socket connected:', socket.id);
   currentDrawerName = 'Đang chờ...';
   updateCurrentDrawerName('Đang chờ...');
+  
+  // Khởi tạo hint elements
+  hintButton = document.getElementById("hint-button");
+  wordDisplay = document.getElementById("word-display");
+  currentWordSpan = document.getElementById("current-word");
+  hintCountSpan = document.getElementById("hint-count");
+  hintDisplay = document.getElementById("hint-display");
+  hintText = document.getElementById("hint-text");
+  remainingHintsSpan = document.getElementById("remaining-hints");
+  
   registerPlayer();
 });
 // Khi socket tự động reconnect lại sau mất kết nối
@@ -553,10 +595,29 @@ socket.on('reconnect', (attemptNumber) => {
   console.log('Socket reconnected after', attemptNumber, 'times');
   currentDrawerName = 'Đang chờ...';
   updateCurrentDrawerName('Đang chờ...');
+  
+  // Khởi tạo hint elements
+  hintButton = document.getElementById("hint-button");
+  wordDisplay = document.getElementById("word-display");
+  currentWordSpan = document.getElementById("current-word");
+  hintCountSpan = document.getElementById("hint-count");
+  hintDisplay = document.getElementById("hint-display");
+  hintText = document.getElementById("hint-text");
+  remainingHintsSpan = document.getElementById("remaining-hints");
+  
   registerPlayer();
 });
 
 window.onload = function () {
+  // Khởi tạo hint elements
+  hintButton = document.getElementById("hint-button");
+  wordDisplay = document.getElementById("word-display");
+  currentWordSpan = document.getElementById("current-word");
+  hintCountSpan = document.getElementById("hint-count");
+  hintDisplay = document.getElementById("hint-display");
+  hintText = document.getElementById("hint-text");
+  remainingHintsSpan = document.getElementById("remaining-hints");
+  
   setProgressBar(10, 'drawing-board__progress-fill', () => startDrawing());
 };
 
@@ -657,29 +718,43 @@ shareBtn.addEventListener('click', () => {
 
 
 function updateHintButton() {
+  console.log('Updating hint button, isDrawer:', isDrawer, 'hintCount:', hintCount);
   if (hintCountSpan) hintCountSpan.textContent = hintCount
   if (hintButton) {
     hintButton.disabled = !isDrawer || hintCount <= 0
     if (hintCount <= 0) hintButton.textContent = 'Hết gợi ý'
+    console.log('Hint button disabled:', hintButton.disabled);
   }
 }
 
-// Xử lý sự kiện click nút gợi ý
-if (hintButton) {
-  hintButton.addEventListener('click', () => {
-    if (!isDrawer) return; // chỉ người vẽ được bấm
-    if (hintCount > 0 && currentWord) {
-      const hintLevel = 4 - hintCount; // 1..3
-      socket.emit('requestHint', {
-        word: currentWord,
-        hintLevel
-      })
-    }
-  })
+// Function để thêm event listener cho hint button
+function addHintButtonListener() {
+  if (hintButton && !hintButton.hasAttribute('data-listener-added')) {
+    hintButton.addEventListener('click', () => {
+      console.log('Hint button clicked, isDrawer:', isDrawer, 'hintCount:', hintCount, 'currentWord:', currentWord);
+      if (!isDrawer) return; // chỉ người vẽ được bấm
+      if (hintCount > 0 && currentWord) {
+        const hintLevel = 4 - hintCount; // 1..3
+        console.log('Sending hint request, level:', hintLevel);
+        socket.emit('requestHint', {
+          word: currentWord,
+          hintLevel
+        })
+      }
+    });
+    hintButton.setAttribute('data-listener-added', 'true');
+    console.log('Hint button listener added');
+  }
 }
+
+// Thêm event listener khi DOM load
+document.addEventListener('DOMContentLoaded', () => {
+  addHintButtonListener();
+});
 
 // Nhận gợi ý từ server và hiển thị cho tất cả
 socket.on('showHint', (data) => {
+  console.log('Received hint from server:', data);
   // Cập nhật đếm theo server
   hintCount = Math.max(0, Number(data?.remainingHints) || hintCount)
   updateHintButton()
@@ -692,3 +767,5 @@ socket.on('showHint', (data) => {
     }, 5000)
   }
 })
+
+
