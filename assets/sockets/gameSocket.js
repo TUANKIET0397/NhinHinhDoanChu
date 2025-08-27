@@ -242,6 +242,7 @@ module.exports = (io) => {
           guessHistory = [];
           io.emit('clearCanvas');
           gameStarted = false;
+          await resetGame();
           return;
         }
 
@@ -307,29 +308,30 @@ module.exports = (io) => {
   }
 
   async function resetGame() {
-    // Reset điểm và lượt chơi
-    players.forEach((player) => {
-      player.score = 0;
-      player.hasDrawn = false;
-      player.correctGuess = false;
-    });
-
     // Reset các biến game
     turnCount = 0;
-    currentDrawer = null;
-    currentWord = null;
-    isPlaying = false;
+    currentDrawerIndex = 0;
+    players.forEach((p) => {
+      p.score = 0;
+      p.role = 'guesser';
+      p.isCorrect = false;
+    });
+    updatePlayers();
 
-    // Thông báo reset cho clients
+    // Clear history
+    drawHistory = [];
+    guessHistory = [];
+
+    // Thông báo reset
     io.emit('resetGame', {
-      players: Array.from(players.values()),
+      players: players,
     });
 
     // Bắt đầu game mới sau 3 giây
     setTimeout(() => {
       if (players.length >= 3) {
         updateMaxTurns();
-        startNewRound();
+        startTurn();
       }
     }, 3000);
   }
@@ -359,24 +361,7 @@ module.exports = (io) => {
 
     // Reset game sau khi hiện bảng xếp hạng
     setTimeout(() => {
-      // Reset các biến game
-      turnCount = 0;
-      currentDrawerIndex = 0;
-      players.forEach((p) => {
-        p.score = 0;
-        p.role = 'guesser';
-        p.isCorrect = false;
-      });
-
-      // Clear history
-      drawHistory = [];
-      guessHistory = [];
-
-      // Thông báo reset
-      io.emit('resetGame', {
-        players: players,
-      });
-
+      resetGame();
       // Bắt đầu game mới
       setTimeout(() => {
         if (players.length >= 3) {
@@ -401,7 +386,7 @@ module.exports = (io) => {
   }
 
   async function startTurn() {
-    if (players.length < 2) return;
+    if (players.length < 3) return;
 
     // Reset tất cả về guesser
     players.forEach((p) => {
@@ -448,7 +433,7 @@ module.exports = (io) => {
       return;
     }
 
-    if (players.length < 2) return;
+    if (players.length < 3) return;
 
     // Thưởng điểm cho drawer nếu có người đoán đúng
     const currentDrawer = players[currentDrawerIndex];
