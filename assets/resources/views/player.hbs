@@ -14,7 +14,7 @@
         </div>
         <div class="player_navigate">
             <button id="out-game" class="player_buttons">Out game</button>
-            <button class="player_buttons share">share</button>
+            <button class="player_buttons share">Share</button>
             <div class="qr-code">
                 <img src="" alt="qr-code" />
             </div>
@@ -30,22 +30,25 @@
             style="display: none;"
         >
             <div class="drawing-board__wrapper" id="drawing-board__first">
-                <h2 class="drawing-board__title">Do you want to draw?</h2>
-                <h3 class="drawing-board__username" id="drawer-name-first"></h3>
                 <img
-                    src="https://media.giphy.com/media/l0HlA1V6N1FjkK9iM/giphy.gif"
+                    src="/img/background/logo.png"
                     alt="fun gif"
                     class="drawing-board__gif"
                 />
+                <h2 class="drawing-board__title">Draw Or Guess</h2>
+                <h3 class="drawing-board__username" id="drawer-name-first"></h3>
+                
                 <div class="drawing-board__options">
                     <button
+                    style="font-size: 40px;"
                         class="drawing-board__button"
                         onclick="handleChoice('draw')"
                     >Draw</button>
                     <button
+                    style="font-size: 40px;"
                         class="drawing-board__button"
                         onclick="handleChoice('no-draw')"
-                    >Don't draw</button>
+                    >Guess</button>
                 </div>
             </div>
             <div
@@ -53,16 +56,17 @@
                 id="drawing-board__second"
                 style="display: none;"
             >
+                <img
+                    src="/img/background/logo.png"
+                    alt="fun gif"
+                    class="drawing-board__gif"
+                />
                 <h2 class="drawing-board__title">Choose a keyword!</h2>
                 <h3
                     class="drawing-board__username"
                     id="drawer-name-second"
                 ></h3>
-                <img
-                    src="https://media.giphy.com/media/l0HlA1V6N1FjkK9iM/giphy.gif"
-                    alt="fun gif"
-                    class="drawing-board__gif"
-                />
+                
                 <div class="drawing-board__options">
                     <!-- Các button chọn từ sẽ được thêm động bằng JavaScript -->
                 </div>
@@ -103,7 +107,7 @@
                 <!-- Second Place -->
                 <div class="ranking-board__item ranking-board__item--second">
                     <div class="ranking-board__avatar">
-                        <img src="/img/rank2.png" alt="" />
+                        <img src="/img/rank/rank2.png" alt="" />
                     </div>
                     <h3 class="ranking-board__name">2nd Place</h3>
                     <h4 class="ranking-board__score">0</h4>
@@ -112,7 +116,7 @@
                 <!-- First Place -->
                 <div class="ranking-board__item ranking-board__item--first">
                     <div class="ranking-board__avatar">
-                        <img src="/img/rank1.png" alt="" />
+                        <img src="/img/rank/rank1.png" alt="" />
                     </div>
                     <h3 class="ranking-board__name">1st Place</h3>
                     <h4 class="ranking-board__score">0</h4>
@@ -121,7 +125,7 @@
                 <!-- Third Place -->
                 <div class="ranking-board__item ranking-board__item--third">
                     <div class="ranking-board__avatar">
-                        <img src="/img/rank3.png" alt="" />
+                        <img src="/img/rank/rank3.png" alt="" />
                     </div>
                     <h3 class="ranking-board__name">3rd Place</h3>
                     <h4 class="ranking-board__score">0</h4>

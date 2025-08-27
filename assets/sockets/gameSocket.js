@@ -416,7 +416,7 @@ module.exports = (io) => {
           startTurn();
         }
       }, 3000);
-    }, 8000);
+    }, 15000);
   }
 
   async function chooseWord() {

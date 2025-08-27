@@ -561,7 +561,7 @@ window.onload = function () {
 };
 
 // Ranking Board
-function updateRankingBoard(rankings) {
+function updateRankingBoard(rankings, durationSec = 8) {
   const items = document.querySelectorAll('.ranking-board__item');
 
   rankings.forEach((player, index) => {
@@ -574,22 +574,38 @@ function updateRankingBoard(rankings) {
 
   // Start progress bar animation
   const progressFill = document.querySelector('.ranking-board__progress-fill');
+
+  // Reset về trạng thái đầu
+  progressFill.style.transition = 'none';
   progressFill.style.width = '100%';
-  setTimeout(() => {
-    progressFill.style.transition = '8s linear';
-    progressFill.style.width = '0';
-  }, 100);
+
+  // Force reflow để đảm bảo trình duyệt “nhận” trạng thái trước khi animate
+  void progressFill.offsetWidth;
+
+  // Bắt đầu animate đồng bộ
+  progressFill.style.transition = `width ${durationSec}s linear`;
+  progressFill.style.width = '0';
 }
 
 socket.on('showRankings', (data) => {
   const rankingBoard = document.querySelector('.ranking-board');
-  rankingBoard.style.display = 'flex';
-  updateRankingBoard(data.players);
+  const wd = document.getElementById('word-display');
+  const prog = document.querySelector('.drawing-board__progress');
+  if (wd) wd.style.display = 'none';
+  if (prog) prog.style.display = 'none';
 
-  // Hide ranking board after 8 seconds
+  rankingBoard.style.display = 'flex';
+  // Đảm bảo overlay đã render trước khi animate
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      updateRankingBoard(data.players, data.duration || 8);
+    });
+  });
+
   setTimeout(() => {
     rankingBoard.style.display = 'none';
-  }, 8000);
+    // không tự bật lại progress ở đây; chờ sự kiện turn mới
+  }, (data.duration || 8) * 1000 + 200);
 });
 
 // Thêm xử lý khi reset game
