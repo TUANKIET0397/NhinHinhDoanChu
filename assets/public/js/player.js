@@ -6,8 +6,19 @@ const canvas = document.querySelector("canvas"),
     colorPicker = document.querySelector("#color-picker"),
     clearCanvas = document.querySelector(".clear-canvas"),
     saveImg = document.querySelector(".save-img"),
-    ctx = canvas.getContext("2d")
+    ctx = canvas.getContext("2d"),
+    outgame = document.getElementById("out-game")
 
+// Function to handle out game
+document.addEventListener("DOMContentLoaded", () => {
+    const outgame = document.getElementById("out-game")
+    if (outgame) {
+        outgame.addEventListener("click", () => {
+            window.location.href = "/"
+        })
+    }
+})
+// Show canvas and hide waiting message
 function showCanvasWaiting() {
     document.getElementById("drawing-board__canvas").style.display = "block"
     if (!isDrawing) {
@@ -404,6 +415,7 @@ socket.on("selectedWord", (word) => {
 })
 
 //Drawboard.js
+
 function handleChoice(choice) {
     if (choice === "draw") {
         // Ẩn first, hiển thị second để chọn từ
