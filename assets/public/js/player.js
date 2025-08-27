@@ -41,6 +41,17 @@ let isDrawer = false;
 let canGuess = false;
 let timer;
 
+// Biến cho hệ thống gợi ý
+let hintCount = 3
+let currentWord = ""
+let hintButton = document.getElementById("hint-button")
+let wordDisplay = document.getElementById("word-display")
+let currentWordSpan = document.getElementById("current-word")
+let hintCountSpan = document.getElementById("hint-count")
+let hintDisplay = document.getElementById("hint-display")
+let hintText = document.getElementById("hint-text")
+let remainingHintsSpan = document.getElementById("remaining-hints")
+
 const setCanvasBackground = () => {
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -281,6 +292,9 @@ socket.on('startDrawing', () => {
   document.getElementById('drawing-board__choice').style.display = 'none';
   document.getElementById('drawing-board__canvas').style.display = 'block';
   resizeCanvas();
+  // Nếu client đã biết currentWord, hiển thị ngay cho người vẽ
+  if (currentWord && currentWordSpan) currentWordSpan.textContent = currentWord;
+  if (currentWord && wordDisplay) wordDisplay.style.display = 'block';
 });
 
 socket.on('otherPlayerDrawing', () => {
@@ -307,6 +321,10 @@ socket.on('role', (role) => {
   if (role === 'drawer') {
     isDrawer = true;
     canGuess = false;
+    // Reset lượt gợi ý khi trở thành người vẽ mới
+    hintCount = 3;
+    updateHintButton();
+    if (hintDisplay) hintDisplay.style.display = 'none';
 
     // Hiện first, ẩn second và canvas
     document.getElementById('drawing-board__choice').style.display = 'block';
@@ -316,6 +334,11 @@ socket.on('role', (role) => {
   } else {
     isDrawer = false;
     canGuess = true;
+    // Khi là người đoán, đảm bảo nút gợi ý bị vô hiệu hóa và ẩn khung gợi ý cũ
+    updateHintButton();
+    if (hintDisplay) hintDisplay.style.display = 'none';
+    if (wordDisplay) wordDisplay.style.display = 'none';
+    if (currentWordSpan) currentWordSpan.textContent = '';
 
     // Ẩn tất cả UI chọn vẽ, chỉ để canvas đoán
     document.getElementById('drawing-board__choice').style.display = 'none';
@@ -331,22 +354,6 @@ socket.on('updateCurrentDrawer', (drawerInfo) => {
   console.log('Updating current drawer to:', drawerInfo.name);
   currentDrawerName = drawerInfo.name;
   updateCurrentDrawerName(drawerInfo.name);
-});
-
-socket.on('updateCurrentDrawer', (data) => {
-  // ...existing code...
-
-  if (socket.id === data.drawer.id) {
-    // Nếu là người vẽ
-    document.getElementById('drawing-board__canvas').style.display = 'flex';
-    document.getElementById('drawing-board__choice').style.display = 'none';
-
-    // Hiển thị từ đã chọn
-    const wordDisplay = document.createElement('div');
-    wordDisplay.className = 'current-word-display';
-    wordDisplay.textContent = `Từ cần vẽ: ${data.word}`;
-    document.querySelector('.drawing-board').appendChild(wordDisplay);
-  }
 });
 
 // Cập nhật khi game bắt đầu turn mới
@@ -372,6 +379,11 @@ socket.on('clearCanvas', () => {
 //Choose Word
 
 function chooseWord(word) {
+  // Cập nhật ngay trên client cho người vẽ
+  currentWord = word;
+  if (currentWordSpan) currentWordSpan.textContent = word;
+  if (wordDisplay) wordDisplay.style.display = 'block';
+
   socket.emit('selectedWord', word);
   document.getElementById('drawing-board__choice').style.display = 'none';
   document.getElementById('drawing-board__canvas').style.display = 'block';
@@ -404,12 +416,7 @@ socket.on('chooseWordOptions', (words) => {
   });
 });
 
-socket.on('selectedWord', (word) => {
-  currentWord = word;
-
-  // Thông báo cho người chơi khác là bắt đầu vẽ
-  socket.broadcast.emit('otherPlayerDrawing');
-});
+// (removed duplicate/incorrect selectedWord handler)
 
 //Drawboard.js
 
@@ -630,3 +637,42 @@ shareBtn.addEventListener('click', () => {
     isVisible = false;
   }
 });
+
+
+
+function updateHintButton() {
+  if (hintCountSpan) hintCountSpan.textContent = hintCount
+  if (hintButton) {
+    hintButton.disabled = !isDrawer || hintCount <= 0
+    if (hintCount <= 0) hintButton.textContent = 'Hết gợi ý'
+  }
+}
+
+// Xử lý sự kiện click nút gợi ý
+if (hintButton) {
+  hintButton.addEventListener('click', () => {
+    if (!isDrawer) return; // chỉ người vẽ được bấm
+    if (hintCount > 0 && currentWord) {
+      const hintLevel = 4 - hintCount; // 1..3
+      socket.emit('requestHint', {
+        word: currentWord,
+        hintLevel
+      })
+    }
+  })
+}
+
+// Nhận gợi ý từ server và hiển thị cho tất cả
+socket.on('showHint', (data) => {
+  // Cập nhật đếm theo server
+  hintCount = Math.max(0, Number(data?.remainingHints) || hintCount)
+  updateHintButton()
+  if (hintText) hintText.textContent = data?.hint || ''
+  if (remainingHintsSpan) remainingHintsSpan.textContent = String(hintCount)
+  if (hintDisplay) {
+    hintDisplay.style.display = 'block'
+    setTimeout(() => {
+      hintDisplay.style.display = 'none'
+    }, 5000)
+  }
+})

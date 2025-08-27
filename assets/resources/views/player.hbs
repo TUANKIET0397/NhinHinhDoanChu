@@ -41,11 +41,11 @@
                     <button
                         class="drawing-board__button"
                         onclick="handleChoice('draw')"
-                    >Vẽ</button>
+                    >Draw</button>
                     <button
                         class="drawing-board__button"
                         onclick="handleChoice('no-draw')"
-                    >Không vẽ</button>
+                    >Don't draw</button>
                 </div>
             </div>
             <div
@@ -74,6 +74,17 @@
             class="drawing-board__canvas"
             style="display: none;"
         >
+            <div class="word-display" id="word-display" style="display: none;">
+                <h3>Keyword: <span id="current-word"></span></h3>
+                <button class="hint-button" id="hint-button">Suggest (<span id="hint-count">3</span>)</button>
+            </div>
+
+            <!-- Gợi ý hiển thị cho TẤT CẢ người chơi (kể cả người đoán) -->
+            <div id="hint-display" class="hint-display" style="display:none;">
+                <span id="hint-text"></span>
+                <span class="hint-remaining">(<span id="remaining-hints">3</span> suggestions left)</span>
+            </div>
+            
             <canvas id="drawing-canvas"></canvas>
             <div class="drawing-board__progress">
                 <div

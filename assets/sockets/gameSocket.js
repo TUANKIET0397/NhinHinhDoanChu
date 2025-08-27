@@ -9,6 +9,8 @@ module.exports = (io) => {
   let players = []; // [{id, name, score, isCorrect}]
   let currentDrawerIndex = 0;
   let currentWord = '';
+  // Lưu số lần gợi ý đã dùng cho mỗi lượt theo socket id của drawer
+  let hintUsage = { count: 0, drawerId: null };
   let gameStarted = false;
   let turnCount = 0; // Track number of turns per player
   let maxTurns = 4; // Default max turns
@@ -195,6 +197,8 @@ module.exports = (io) => {
       if (player && player.role === 'drawer') {
         currentWord = word;
         const drawer = players[currentDrawerIndex];
+        // Reset bộ đếm gợi ý cho lượt mới
+        hintUsage = { count: 0, drawerId: drawer.id };
 
         // Phát cho tất cả người chơi sự kiện bắt đầu round
         io.emit('startRound');
@@ -218,6 +222,49 @@ module.exports = (io) => {
         drawHistory = [];
         io.emit('clear');
       }
+    });
+
+    // Xử lý yêu cầu gợi ý: chỉ người vẽ được gửi, server tạo gợi ý đúng từ currentWord
+    socket.on("requestHint", async (data) => {
+      const player = players.find((p) => p.id === socket.id);
+      if (!player || player.role !== "drawer") return;
+      if (!currentWord) return;
+      if (hintUsage.drawerId !== socket.id) {
+        hintUsage = { count: 0, drawerId: socket.id };
+      }
+      if (hintUsage.count >= 3) {
+        io.to(socket.id).emit('hintLimitReached', { message: 'Bạn đã dùng hết gợi ý.' });
+        return;
+      }
+
+      const level = Math.min(Math.max(parseInt(data?.hintLevel) || (hintUsage.count + 1), 1), 3);
+
+      const generateServerHint = (word, level) => {
+        const w = (word || '').toString();
+        const len = w.length;
+        if (!len) return 'Không có từ để gợi ý';
+        if (level === 1) {
+          return `This word has ${len} letters and starts with the letter "${w.charAt(0).toUpperCase()}"`;
+        }
+        if (level === 2) {
+          return `This word starts with the letter "${w.charAt(0).toUpperCase()}" and ends with the letter "${w.charAt(len - 1).toUpperCase()}"`;
+        }
+        const revealed = Math.max(1, Math.ceil(len * 0.6));
+        let parts = [];
+        for (let i = 0; i < revealed; i++) {
+          const pos = Math.floor((i * len) / revealed);
+          parts.push(`${pos + 1}. "${w.charAt(pos).toUpperCase()}"`);
+        }
+        return `letters: ${parts.join(' ')}`;
+      };
+
+      hintUsage.count += 1;
+
+      const hint = generateServerHint(currentWord, level);
+      io.emit("showHint", {
+        hint,
+        remainingHints: Math.max(0, 3 - hintUsage.count)
+      });
     });
 
     socket.on('disconnect', async () => {
@@ -440,7 +487,10 @@ module.exports = (io) => {
     const hasCorrectGuess = players.some((p) => p.isCorrect);
 
     if (hasCorrectGuess && currentDrawer) {
-      currentDrawer.score += 7; // Drawer được 7 điểm
+      // Thưởng điểm cho drawer và trừ điểm theo số lần đã dùng gợi ý trong lượt này
+      const hintPenalty = (hintUsage.drawerId === currentDrawer.id) ? (hintUsage.count || 0) : 0;
+      currentDrawer.score += 7; // thưởng cơ bản
+      currentDrawer.score = Math.max(0, currentDrawer.score - hintPenalty); // trừ mỗi gợi ý 1 điểm
 
       // Cập nhật điểm drawer trong database
       try {

@@ -576,6 +576,129 @@ h6 {
   height: 90px;
 }
 
-/* QR code */
+/* Add progress bar styling */
+.ranking-board__progress {
+  height: 10px;
+  background-color: #ccc;
+  width: 95%;
+  margin: 20px auto;
+  border-radius: 20px;
+  overflow: hidden;
+}
 
-/*# sourceMappingURL=player.css.map */
+.ranking-board__progress-fill {
+  height: 100%;
+  background-color: #003399;
+  width: 100%;
+  transition: width linear;
+}
+
+.ranking-board__reset-text {
+    color: #666;
+    font-size: 14px;
+    margin-top: 15px;
+    font-style: italic;
+}
+
+/* Hover effect cho ranking items */
+.ranking-board__item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Styling cho word display và hint */
+.word-display {
+  background: #f8f9fa;
+  border: 2px solid #4a98f7;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.word-display h3 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.word-display #current-word {
+  color: #4a98f7;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.hint-button {
+  background: #4a98f7;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.hint-button:hover {
+  background: #357abd;
+  transform: translateY(-2px);
+}
+
+.hint-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Styling cho hint display */
+.hint-display {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border: 3px solid #4a98f7;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  z-index: 1000;
+  max-width: 300px;
+  text-align: center;
+  animation: hintSlideIn 0.3s ease-out;
+}
+
+@keyframes hintSlideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.hint-content h3 {
+  color: #4a98f7;
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+
+.hint-content #hint-text {
+  color: #333;
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.hint-info {
+  color: #666;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.hint-info span {
+  color: #4a98f7;
+  font-weight: bold;
+}
