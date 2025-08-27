@@ -53,6 +53,47 @@ section {
     border-radius: 7px;
 }
 
+.player_navigate {
+    position: relative;
+    text-align: center;
+}
+
+.player_buttons {
+    padding: 10px 20px;
+    margin: 5px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.player_buttons:hover {
+    background: #0056b3;
+}
+
+.qr-code.show,
+.qr-code {
+    position: absolute;
+}
+
+.qr-code {
+    margin-top: 15px;
+    display: none; /* Ẩn mặc định */
+}
+
+.qr-code.show {
+    top: -204px;
+    right: 5px;
+    display: block;
+    border: 1px solid #0fd2b0;
+}
+
+.qr-code img {
+    max-width: 200px;
+    border: 1px solid #ddd;
+}
+
 /* tools */
 
 .tools {
@@ -278,6 +319,10 @@ section {
     background-color: #1579f3;
 }
 
+.player_buttons.share:active {
+    transform: scale(0.98);
+}
+
 .share {
     background-color: #4a98f7;
     border: 1px solid #4a98f7;
@@ -426,63 +471,81 @@ section {
     flex-direction: column;
 }
 
-
-  .ranking-board__title {
+.ranking-board__title {
     font-size: 32px;
     font-weight: bold;
     color: #003399;
     margin: 20px 0;
-  }
+}
 
-  .ranking-board__list {
+.ranking-board__list {
     display: flex;
     justify-content: center;
     align-items: flex-end;
     gap: 40px;
     margin-top: 40px;
-  }
+}
 
-  .ranking-board__item {
+.ranking-board__item {
     width: 135px;
     padding: 2px;
-  }
+}
 
-  .ranking-board__avatar {
+.ranking-board__avatar {
     width: 100%;
     height: 100px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 40px;  
-  }
-  .ranking-board__avatar img {
-width: 100%;
-height: 100%;
-object-fit: contain;
-display: block;
+    font-size: 40px;
+}
+.ranking-board__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
 }
 
-  .ranking-board__name {
+.ranking-board__name {
     font-size: 15px;
     margin-top: 10px;
-  }
+}
 
-  .ranking-board__score {
+.ranking-board__score {
     font-size: 13px;
     color: #666;
     margin: 5px auto;
-  }
+}
 
-   h1, h2, h3, h4, h5, h6 {
-  margin: 0;
-  padding: 0;}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+    padding: 0;
+}
 
-  /* podium effect */
-  .ranking-board__item--first { height: 200px; }
-  .ranking-board__item--second { height: 175px; width: 110px; }
-  .ranking-board__item--third { height: 160px; width: 100px; }
+/* podium effect */
+.ranking-board__item--first {
+    height: 200px;
+}
+.ranking-board__item--second {
+    height: 175px;
+    width: 110px;
+}
+.ranking-board__item--third {
+    height: 160px;
+    width: 100px;
+}
 
+.ranking-board__item--second img {
+    height: 90px;
+}
+.ranking-board__item--third img {
+    height: 90px;
+}
 
-  .ranking-board__item--second img{ height: 90px;}
-  .ranking-board__item--third img{ height: 90px}
+/* QR code */

@@ -24,6 +24,7 @@
         "express-handlebars": "^8.0.3",
         "express-session": "^1.18.2",
         "mysql2": "^3.14.3",
+        "ngrok": "^5.0.0-beta.2",
         "sequelize": "^6.37.7",
         "socket.io": "^4.8.1",
         "socket.io-client": "^4.8.1"

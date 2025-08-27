@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /* Import Google font - Poppins */
 @import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap");
 * {
@@ -52,6 +53,47 @@ body {
 section {
   background: #fff;
   border-radius: 7px;
+}
+
+.player_navigate {
+  position: relative;
+  text-align: center;
+}
+
+.player_buttons {
+  padding: 10px 20px;
+  margin: 5px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.player_buttons:hover {
+  background: #0056b3;
+}
+
+.qr-code.show,
+.qr-code {
+  position: absolute;
+}
+
+.qr-code {
+  margin-top: 15px;
+  display: none; /* Ẩn mặc định */
+}
+
+.qr-code.show {
+  top: -204px;
+  right: 5px;
+  display: block;
+  border: 1px solid #0fd2b0;
+}
+
+.qr-code img {
+  max-width: 200px;
+  border: 1px solid #ddd;
 }
 
 /* tools */
@@ -302,6 +344,10 @@ section {
   background-color: #1579f3;
 }
 
+.player_buttons.share:active {
+  transform: scale(0.98);
+}
+
 .share {
   background-color: #4a98f7;
   border: 1px solid #4a98f7;
@@ -440,23 +486,13 @@ section {
   transition: width linear;
 }
 
-/*# sourceMappingURL=player.css.map */
-
+/* ranking-board */
 .ranking-board {
   flex: 1;
   display: flex;
-  flex-direction: column;
   background: white;
   padding: 20px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.2);
-  width: 80%;
-  max-width: 800px;
-  text-align: center;
+  flex-direction: column;
 }
 
 .ranking-board__title {
@@ -486,13 +522,14 @@ section {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;  
+  font-size: 40px;
 }
+
 .ranking-board__avatar img {
-width: 100%;
-height: 100%;
-object-fit: contain;
-display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .ranking-board__name {
@@ -506,39 +543,39 @@ display: block;
   margin: 5px auto;
 }
 
- h1, h2, h3, h4, h5, h6 {
-margin: 0;
-padding: 0;}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  padding: 0;
+}
 
 /* podium effect */
-.ranking-board__item--first { height: 200px; }
-.ranking-board__item--second { height: 175px; width: 110px; }
-.ranking-board__item--third { height: 160px; width: 100px; }
-
-
-.ranking-board__item--second img{ height: 90px;}
-.ranking-board__item--third img{ height: 90px}
-
-/* Add progress bar styling */
-.ranking-board__progress {
-  height: 10px;
-  background-color: #ccc;
-  width: 95%;
-  margin: 20px auto;
-  border-radius: 20px;
-  overflow: hidden;
+.ranking-board__item--first {
+  height: 200px;
 }
 
-.ranking-board__progress-fill {
-  height: 100%;
-  background-color: #003399;
-  width: 100%;
-  transition: width linear;
+.ranking-board__item--second {
+  height: 175px;
+  width: 110px;
 }
 
-.ranking-board__reset-text {
-    color: #666;
-    font-size: 14px;
-    margin-top: 15px;
-    font-style: italic;
+.ranking-board__item--third {
+  height: 160px;
+  width: 100px;
 }
+
+.ranking-board__item--second img {
+  height: 90px;
+}
+
+.ranking-board__item--third img {
+  height: 90px;
+}
+
+/* QR code */
+
+/*# sourceMappingURL=player.css.map */
