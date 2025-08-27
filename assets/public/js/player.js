@@ -537,7 +537,9 @@ socket.on('updatePlayers', (players) => {
 
     playerDiv.innerHTML = `
       <div class="player_main">
-        <div class="player_avatar"></div>
+        <div class="player_avatar">
+          <img src="/img/avatar/${p.avatar || 'avt1.jpg'}" alt="Avatar" />
+        </div>
         <div class="player_detail">
           <div class="player_name">${drawerIcon}${p.name}</div>
           <div class="player_score">${

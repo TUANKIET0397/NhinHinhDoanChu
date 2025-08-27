@@ -6,7 +6,7 @@ const PlayerModel = require('../app/models/Player.js')(sequelize);
 module.exports = (io) => {
   let drawHistory = [];
   let guessHistory = [];
-  let players = []; // [{id, name, score, isCorrect}]
+  let players = []; // [{id, name, score, isCorrect, avatar}]
   let currentDrawerIndex = 0;
   let currentWord = '';
   // Lưu số lần gợi ý đã dùng cho mỗi lượt theo socket id của drawer
@@ -15,6 +15,7 @@ module.exports = (io) => {
   let turnCount = 0; // Track number of turns per player
   let maxTurns = 4; // Default max turns
   let roundStartTime = {}; // Track answer times
+  let usedAvatars = new Set(); // Track used avatars to avoid duplicates
 
   io.on('connection', (socket) => {
     console.log('✅ New user connected:', socket.id);
@@ -63,6 +64,7 @@ module.exports = (io) => {
         score: playerScore,
         role: 'guesser',
         isCorrect: false,
+        avatar: assignRandomAvatar(),
       };
 
       players.push(newPlayer);
@@ -273,6 +275,11 @@ module.exports = (io) => {
 
       const playerToRemove = players.find((p) => p.id === socket.id);
       if (playerToRemove) {
+        // Reset avatar khi player disconnect
+        if (playerToRemove.avatar) {
+          usedAvatars.delete(playerToRemove.avatar);
+        }
+        
         players = players.filter((p) => p.id !== socket.id);
         updatePlayers();
 
@@ -304,6 +311,34 @@ module.exports = (io) => {
   });
 
   //Functions
+  function assignRandomAvatar() {
+    const totalAvatars = 20; // avt1.jpg to avt20.jpg
+    const availableAvatars = [];
+    
+    // Tìm tất cả avatar chưa được sử dụng
+    for (let i = 1; i <= totalAvatars; i++) {
+      const avatarName = `avt${i}.jpg`;
+      if (!usedAvatars.has(avatarName)) {
+        availableAvatars.push(avatarName);
+      }
+    }
+    
+    // Nếu hết avatar, reset lại
+    if (availableAvatars.length === 0) {
+      usedAvatars.clear();
+      for (let i = 1; i <= totalAvatars; i++) {
+        availableAvatars.push(`avt${i}.jpg`);
+      }
+    }
+    
+    // Chọn random một avatar
+    const randomIndex = Math.floor(Math.random() * availableAvatars.length);
+    const selectedAvatar = availableAvatars[randomIndex];
+    usedAvatars.add(selectedAvatar);
+    
+    return selectedAvatar;
+  }
+
   function updatePlayers() {
     const currentDrawer = players[currentDrawerIndex];
 
@@ -316,6 +351,7 @@ module.exports = (io) => {
         score: p.score || 0,
         role: p.role || 'guesser', // 'drawer' hoặc 'guesser'
         isCorrect: p.isCorrect || false,
+        avatar: p.avatar || 'avt1.jpg', // Default avatar if not set
       }))
     );
 
@@ -362,6 +398,7 @@ module.exports = (io) => {
       p.score = 0;
       p.role = 'guesser';
       p.isCorrect = false;
+      // Giữ nguyên avatar khi reset game
     });
     updatePlayers();
 
