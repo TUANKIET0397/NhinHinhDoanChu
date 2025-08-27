@@ -52,6 +52,11 @@ let hintDisplay = document.getElementById("hint-display")
 let hintText = document.getElementById("hint-text")
 let remainingHintsSpan = document.getElementById("remaining-hints")
 
+// Biến cho thanh thời gian chọn
+let choiceTimer1 = null;
+let choiceTimer2 = null;
+let choiceTimerDuration = 10; // 10 giây
+
 const setCanvasBackground = () => {
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -273,6 +278,7 @@ socket.on('startGame', () => {
   canPlay = true;
   document.getElementById('drawing-board__first').style.display = 'flex'; //Mặc định
   document.querySelector('.drawing-board__progress').style.display = 'block'; //Mặc định
+
 });
 
 // Khi chưa đủ người
@@ -285,6 +291,9 @@ socket.on('yourTurnToDraw', () => {
   isDrawer = true;
   canGuess = false;
   document.getElementById('drawing-board__choice').style.display = 'block';
+
+  stopChoiceTimers(); // <-- Đảm bảo dừng timer trước khi bắt đầu mới
+  startChoiceTimer1();
 });
 
 socket.on('startDrawing', () => {
@@ -292,6 +301,9 @@ socket.on('startDrawing', () => {
   document.getElementById('drawing-board__choice').style.display = 'none';
   document.getElementById('drawing-board__canvas').style.display = 'block';
   resizeCanvas();
+
+  stopChoiceTimers();
+
   
   // Khởi tạo lại hint elements
   hintButton = document.getElementById("hint-button");
@@ -316,15 +328,29 @@ socket.on('otherPlayerDrawing', () => {
   document.getElementById('drawing-board__choice').style.display = 'none';
   document.getElementById('drawing-board__canvas').style.display = 'block';
   resizeCanvas();
+  
+  // Dừng tất cả timer chọn
+  stopChoiceTimers();
 });
 
-socket.on('startRound', () => {
+socket.on('startRound', (data) => {
   document.querySelector('.drawing-board__progress').style.display = 'block';
-  setProgressBar(45, 'drawing-board__canvas-fill', () => {
+  const duration = data?.duration || 45; // Lấy thời gian từ server, mặc định 45s
+  const startTime = data?.startTime || Date.now(); // Timestamp từ server
+  
+  // Tính thời gian còn lại dựa trên timestamp từ server
+  const elapsed = (Date.now() - startTime) / 1000;
+  const remainingTime = Math.max(0, duration - elapsed);
+  
+  // Sử dụng thời gian còn lại để tạo progress bar mượt mà
+  setProgressBar(remainingTime, 'drawing-board__canvas-fill', () => {
     setTimeout(() => {
       socket.emit('timeUp');
     }, 3000);
   });
+  
+  // Lưu thông tin để sync timer
+  window.currentRoundData = { duration, startTime };
 });
 
 //Role
@@ -387,38 +413,30 @@ socket.on('newTurnStarted', (gameState) => {
   }
 });
 
-//Guess correctly
-socket.on('correctGuess', (data) => {
-  alert(`🎉 ${data.winnerId.slice(0, 5)} đã đoán đúng từ "${data.word}"!`);
-});
 
 socket.on('clearCanvas', () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   setCanvasBackground();
   chatBody.innerHTML = ''; // Xoá đoạn chat cũ
+  
+  // Dừng tất cả timer chọn
+  stopChoiceTimers();
 });
 
 //Choose Word
 
 function chooseWord(word) {
-  // Cập nhật ngay trên client cho người vẽ
+  // Dừng timer2 ngay khi chọn từ
+  stopChoiceTimers();
+  
   currentWord = word;
-  
-  // Khởi tạo lại hint elements
-  hintButton = document.getElementById("hint-button");
-  wordDisplay = document.getElementById("word-display");
-  currentWordSpan = document.getElementById("current-word");
-  hintCountSpan = document.getElementById("hint-count");
-  hintDisplay = document.getElementById("hint-display");
-  hintText = document.getElementById("hint-text");
-  remainingHintsSpan = document.getElementById("remaining-hints");
-  
   if (currentWordSpan) currentWordSpan.textContent = word;
   if (wordDisplay) wordDisplay.style.display = 'block';
 
   socket.emit('selectedWord', word);
   document.getElementById('drawing-board__choice').style.display = 'none';
   document.getElementById('drawing-board__canvas').style.display = 'block';
+  
   resizeCanvas();
   setProgressBar(45, 'drawing-board__canvas-fill', () => {
     setTimeout(() => {
@@ -446,6 +464,9 @@ socket.on('chooseWordOptions', (words) => {
     btn.onclick = () => chooseWord(word);
     optionsContainer.appendChild(btn);
   });
+  
+  // Bắt đầu timer cho bảng chọn từ
+  startChoiceTimer2();
 });
 
 // (removed duplicate/incorrect selectedWord handler)
@@ -453,37 +474,218 @@ socket.on('chooseWordOptions', (words) => {
 //Drawboard.js
 
 function handleChoice(choice) {
-  if (choice === 'draw') {
-    // Ẩn first, hiển thị second để chọn từ
-    document.getElementById('drawing-board__first').style.display = 'none';
-    document.getElementById('drawing-board__second').style.display = 'flex';
+    if (choice === 'draw') {
+        // Ẩn first, hiển thị second
+        document.getElementById('drawing-board__first').style.display = 'none';
+        document.getElementById('drawing-board__second').style.display = 'flex';
 
-    // Gửi yêu cầu server gửi danh sách từ
-    socket.emit('requestWordOptions');
-  } else {
-    // Không vẽ → thông báo server để đổi lượt
-    socket.emit('skipDrawing');
-    document.getElementById('drawing-board__choice').style.display = 'none';
-  }
+        // Dừng timer1 trước khi request từ mới
+        stopChoiceTimers();
+        socket.emit('requestWordOptions');
+    } else {
+        socket.emit('skipDrawing');
+        document.getElementById('drawing-board__choice').style.display = 'none';
+        stopChoiceTimers();
+    }
 }
 
 function setProgressBar(duration, barId, callback) {
   const fill = document.getElementById(barId);
+  if (!fill) return;
+  
+  // Clear timer cũ nếu có
+  if (window.currentProgressTimer) {
+    clearTimeout(window.currentProgressTimer);
+  }
+  
+  // Reset style
   fill.style.transition = 'none';
   fill.style.width = '100%';
+  fill.style.background = '#4a98f7'; // Bắt đầu với màu xanh
+  
+  // Force reflow để đảm bảo trình duyệt nhận style mới
+  void fill.offsetWidth;
+  
+  // Bắt đầu animation với transition mượt mà
   setTimeout(() => {
-    fill.style.transition = `width ${duration}s linear`;
+    fill.style.transition = `width ${duration}s cubic-bezier(0.4, 0.0, 0.2, 1)`;
     fill.style.width = '0%';
-  }, 50);
+    
+    // Tạo hiệu ứng chuyển màu dần dần từ xanh sang đỏ
+    const startTime = Date.now();
+    const colorInterval = setInterval(() => {
+      const elapsed = (Date.now() - startTime) / 1000;
+      const progress = elapsed / duration;
+      
+      if (progress >= 1) {
+        clearInterval(colorInterval);
+        fill.style.background = '#ff0000'; // Màu đỏ khi hết thời gian
+      } else {
+        // Chuyển dần từ xanh (#4a98f7) sang đỏ (#ff0000)
+        const red = Math.round(74 + (255 - 74) * progress);
+        const green = Math.round(152 + (0 - 152) * progress);
+        const blue = Math.round(247 + (0 - 247) * progress);
+        fill.style.background = `rgb(${red}, ${green}, ${blue})`;
+      }
+    }, 200); // Cập nhật màu mỗi 200ms để mượt mà hơn
+  }, 100);
 
-  clearTimeout(timer);
-  timer = setTimeout(callback, duration * 1000);
+  // Set timer mới
+  window.currentProgressTimer = setTimeout(callback, duration * 1000);
+}
+
+// Hàm setChoiceProgressBar đã được thay thế bằng logic trực tiếp trong startChoiceTimer1 và startChoiceTimer2
+
+
+// Hàm để bắt đầu thanh thời gian cho bảng chọn đầu tiên
+function startChoiceTimer1() {
+    const timerFill = document.getElementById('choice-timer-1');
+    if (!timerFill) {
+        console.log('Timer 1 element not found');
+        return;
+    }
+    
+    // Dừng timer cũ nếu có
+    if (choiceTimer1) {
+        clearTimeout(choiceTimer1);
+        choiceTimer1 = null;
+    }
+
+    // Reset style
+    timerFill.style.transition = 'none';
+    timerFill.style.width = '100%';
+    timerFill.style.background = '#4a98f7';
+    
+    // Force reflow
+    void timerFill.offsetWidth;
+
+    // Start animation
+    setTimeout(() => {
+        timerFill.style.transition = `width ${choiceTimerDuration}s linear`;
+        timerFill.style.width = '0%';
+        
+        // Tạo hiệu ứng chuyển màu dần dần từ xanh sang đỏ
+        const startTime = Date.now();
+        const colorInterval = setInterval(() => {
+            const elapsed = (Date.now() - startTime) / 1000;
+            const progress = elapsed / choiceTimerDuration;
+            
+            if (progress >= 1) {
+                clearInterval(colorInterval);
+                timerFill.style.background = '#ff0000'; // Màu đỏ khi hết thời gian
+                
+                // Chỉ kick khi timer thực sự chạy xong
+                if (choiceTimer1) {
+                    alert('⏰ Time is up! You have been kicked for AFK!');
+                    socket.disconnect();
+                    window.location.href = '/';
+                }
+            } else {
+                // Chuyển dần từ xanh (#4a98f7) sang đỏ (#ff0000)
+                const red = Math.round(74 + (255 - 74) * progress);
+                const green = Math.round(152 + (0 - 152) * progress);
+                const blue = Math.round(247 + (0 - 247) * progress);
+                timerFill.style.background = `rgb(${red}, ${green}, ${blue})`;
+            }
+        }, 100);
+        
+        // Set timeout cho việc kick
+        choiceTimer1 = setTimeout(() => {
+            choiceTimer1 = null; // Reset để tránh kick nhiều lần
+        }, choiceTimerDuration * 1000);
+    }, 50);
+}
+
+function startChoiceTimer2() {
+  const timerFill = document.getElementById('choice-timer-2');
+  if (!timerFill) return;
+  
+  // Dừng timer cũ nếu có
+  if (choiceTimer2) {
+    clearTimeout(choiceTimer2);
+    choiceTimer2 = null;
+  }
+  
+  // Reset style
+  timerFill.style.transition = 'none';
+  timerFill.style.width = '100%';
+  timerFill.style.background = '#4a98f7';
+  
+  // Force reflow
+  void timerFill.offsetWidth;
+
+  // Start animation
+  setTimeout(() => {
+    timerFill.style.transition = `width ${choiceTimerDuration}s linear`;
+    timerFill.style.width = '0%';
+    
+    // Tạo hiệu ứng chuyển màu dần dần từ xanh sang đỏ
+    const startTime = Date.now();
+    const colorInterval = setInterval(() => {
+      const elapsed = (Date.now() - startTime) / 1000;
+      const progress = elapsed / choiceTimerDuration;
+      
+      if (progress >= 1) {
+        clearInterval(colorInterval);
+        timerFill.style.background = '#ff0000'; // Màu đỏ khi hết thời gian
+        
+        // Chỉ kick khi timer thực sự chạy xong và là người vẽ
+        if (choiceTimer2 && isDrawer) {
+          alert('⏰ Time is up! You have been kicked for AFK!');
+          socket.disconnect();
+          window.location.href = '/';
+        }
+      } else {
+        // Chuyển dần từ xanh (#4a98f7) sang đỏ (#ff0000)
+        const red = Math.round(74 + (255 - 74) * progress);
+        const green = Math.round(152 + (0 - 152) * progress);
+        const blue = Math.round(247 + (0 - 247) * progress);
+        timerFill.style.background = `rgb(${red}, ${green}, ${blue})`;
+      }
+    }, 100);
+    
+    // Set timeout cho việc kick
+    choiceTimer2 = setTimeout(() => {
+      choiceTimer2 = null; // Reset để tránh kick nhiều lần
+    }, choiceTimerDuration * 1000);
+  }, 50);
+}
+
+// Hàm để dừng tất cả thanh thời gian chọn
+function stopChoiceTimers() {
+    // Clear timeouts
+    if (choiceTimer1) {
+        clearTimeout(choiceTimer1);
+        choiceTimer1 = null;
+    }
+    if (choiceTimer2) {
+        clearTimeout(choiceTimer2);
+        choiceTimer2 = null;
+    }
+    
+    // Reset style cho cả 2 timer
+    const timer1 = document.getElementById('choice-timer-1');
+    const timer2 = document.getElementById('choice-timer-2');
+    
+    if (timer1) {
+        timer1.style.transition = 'none';
+        timer1.style.width = '100%';
+        timer1.style.background = '#4a98f7';
+    }
+    if (timer2) {
+        timer2.style.transition = 'none';
+        timer2.style.width = '100%';
+        timer2.style.background = '#4a98f7';
+    }
+    
+    console.log('Timers stopped and reset');
 }
 
 function startDrawing() {
   document.getElementById('drawing-board__choice').style.display = 'none';
   document.getElementById('drawing-board__canvas').style.display = 'flex';
 
+  stopChoiceTimers();
   // đảm bảo canvas có kích thước hợp lệ trước khi vẽ
   requestAnimationFrame(() => {
     resizeCanvas();
@@ -495,17 +697,44 @@ function startDrawing() {
   });
 }
 
-socket.on('syncTimer', (remainingTime) => {
-  setProgressBar(remainingTime, 'drawing-board__canvas-fill', () => {});
+socket.on('syncTimer', (data) => {
+  // Chỉ sync khi cần thiết và không làm gián đoạn animation hiện tại
+  if (window.currentRoundData && data.remainingTime > 0) {
+    const { duration, startTime } = window.currentRoundData;
+    const currentElapsed = (Date.now() - startTime) / 1000;
+    const expectedRemaining = Math.max(0, duration - currentElapsed);
+    
+    // Chỉ sync nếu độ chênh lệch thời gian > 2 giây
+    if (Math.abs(expectedRemaining - data.remainingTime) > 2) {
+      console.log('Syncing timer:', { expected: expectedRemaining, server: data.remainingTime });
+      // Cập nhật thông tin round
+      window.currentRoundData.startTime = data.startTime;
+    }
+  }
 });
 
 socket.on('stopTimer', () => {
-  clearTimeout(timer);
+  // Clear timer hiện tại
+  if (window.currentProgressTimer) {
+    clearTimeout(window.currentProgressTimer);
+    window.currentProgressTimer = null;
+  }
+  
   const fill = document.getElementById('drawing-board__canvas-fill');
   if (fill) {
-    fill.style.transition = 'none';
-    fill.style.width = '0%'; // Dừng ngay lập tức
+    // Dừng animation mượt mà
+    fill.style.transition = 'width 0.3s ease-out';
+    fill.style.width = '0%';
+    
+    // Reset sau khi dừng
+    setTimeout(() => {
+      fill.style.transition = 'none';
+      fill.style.background = '#4a98f7';
+    }, 300);
   }
+  
+  // Clear thông tin round
+  window.currentRoundData = null;
 });
 
 //Bảng người chơi

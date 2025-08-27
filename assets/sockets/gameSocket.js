@@ -202,11 +202,26 @@ module.exports = (io) => {
         // Reset bộ đếm gợi ý cho lượt mới
         hintUsage = { count: 0, drawerId: drawer.id };
 
-        // Phát cho tất cả người chơi sự kiện bắt đầu round
-        io.emit('startRound');
+        // Phát cho tất cả người chơi sự kiện bắt đầu round với thời gian từ server
+        const drawingTime = 45; // 45 giây vẽ
+        const startTime = Date.now(); // Timestamp bắt đầu
+        io.emit('startRound', { 
+          duration: drawingTime,
+          startTime: startTime 
+        });
 
         io.to(drawer.id).emit('startDrawing');
         socket.broadcast.emit('otherPlayerDrawing');
+        
+        // Chỉ sync một lần sau 1 giây để đảm bảo tất cả client đồng bộ ban đầu
+        setTimeout(() => {
+          const currentElapsed = (Date.now() - startTime) / 1000;
+          const remainingTime = Math.max(0, drawingTime - currentElapsed);
+          
+          if (remainingTime > 0) {
+            io.emit('syncTimer', { remainingTime, startTime });
+          }
+        }, 1000);
       }
     });
 
@@ -498,6 +513,8 @@ module.exports = (io) => {
     players.forEach((p, index) => {
       if (index === currentDrawerIndex) {
         io.to(p.id).emit('role', 'drawer');
+        // Gửi sự kiện để người vẽ đầu tiên có thể bắt đầu chọn từ
+        io.to(p.id).emit('yourTurnToDraw');
       } else {
         io.to(p.id).emit('role', 'guesser');
       }
@@ -507,6 +524,10 @@ module.exports = (io) => {
     guessHistory = [];
 
     io.emit('clearCanvas');
+    io.emit('startGame');
+    
+    // KHÔNG gửi startRound ở đây vì người vẽ đầu tiên cần chọn từ trước
+    // startRound sẽ được gửi sau khi họ chọn từ (trong selectedWord)
   }
 
   async function nextTurn() {

@@ -496,6 +496,24 @@ section {
   border: 2px solid #079e78;
 }
 
+/* Thanh thời gian cho bảng chọn */
+.choice-timer {
+  width: 80%;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 10px;
+  margin: 20px auto 0;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.choice-timer__fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 10px;
+}
+
 .drawing-board__progress {
   height: 10px;
   margin-top: 150px;
