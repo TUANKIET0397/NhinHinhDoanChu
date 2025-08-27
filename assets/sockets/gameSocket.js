@@ -241,8 +241,8 @@ module.exports = (io) => {
           drawHistory = [];
           guessHistory = [];
           io.emit('clearCanvas');
-          gameStarted = false;
           await resetGame();
+          gameStarted = false;
           return;
         }
 

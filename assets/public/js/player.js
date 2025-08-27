@@ -587,8 +587,7 @@ socket.on('showRankings', (data) => {
 
 // Thêm xử lý khi reset game
 socket.on('resetGame', (data) => {
-  // ...existing code...
-
+  isDrawer = false;
   // Xóa hiển thị từ cũ
   const oldWordDisplay = document.querySelector('.current-word-display');
   if (oldWordDisplay) {
